@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+<script type="text/javascript">
+	var testArr = [[1,1,2,2,4,4],[4,4,4,4,2,2],[4,2,3,3,3,3],[4,2,2,1,1,1]];
+	var colors = [1,2,3,4];
+	var minCancelNum = 2;
+	function cancel(arr, colors) {
+		//横向扫描，把坐标装入数组
+		var waitForCancel = [];
+		for (var c of colors) {
+			console.log(c);
+			for (var i = 0; i < arr.length; i++) {
+				var counter = 0;
+				for (var j = 0; j <= arr[0].length; j++) {
+					if (arr[i][j] == c) {
+						counter++
+					} else {
+						if (counter > minCancelNum) {
+							for (var k = 0; k < counter; k++) {
+								//arr[i][j-(k+1)]=0;
+								waitForCancel.push([i, j - (k + 1)]);
+							}
+							counter = 0;
+						}
+					}
+				}
+			}
+
+		}
+		//纵向
+		for (var c of colors) {
+			console.log(c);
+			for (var i = 0; i < arr[0].length; i++) {
+				var counter = 0;
+				for (var j = 0; j <= arr.length; j++) {
+					if (arr[j] && arr[j][i] == c) {
+						counter++
+					} else {
+						if (counter > minCancelNum) {
+							for (var k = 0; k < counter; k++) {
+								//arr[i][j-(k+1)]=0;
+								waitForCancel.push([j - (k + 1), i]);
+							}
+							counter = 0;
+						}
+					}
+				}
+			}
+
+		}
+		//遍历记录的坐标，逐个清除
+		for (var i = 0; i < waitForCancel.length; i++) {
+			var rowNum = waitForCancel[i][0];
+			var colNum = waitForCancel[i][1];
+			arr[rowNum][colNum] = 0;
+		}
+
+	}
+	function exchange(location, direction, arr) {
+		var x = location[0];
+		var y = location[1];
+		var targetX = x;
+		var targetY = y;
+		switch (direction) {
+			case 0:
+				targetX--;
+				break;
+			case 1:
+				targetY++;
+				break;
+			case 2:
+				targetX++;
+				break;
+			case 3:
+				targetY--;
+				break;
+			default:
+				alert("error!");
+		}
+		if (targetX >= 0 && targetX < arr.length && targetY >= 0 && targetY < arr[0].length) {
+			var dragColor = arr[x][y];
+			arr[x][y] = arr[targetX][targetY];
+			arr[targetX][targetY] = dragColor;
+		}
+
+	}
+	//cancel(testArr, colors);
+	//exchange([2,1], 1, testArr);
+	// for(var i = 0; i<testArr.length;i++){
+	// 	console.log(testArr[i])
+	// }
+	var cancelStructure = {
+		state: testArr,
+		rows: 5,
+		cols: 5,
+		colors: [1, 2, 3, 4],
+		minCancelNum: 3,
+		canBeCanceled: true,
+		init: function() {
+			for (let i = 0; i < this.rows; i++) {
+				var rowceil = [];
+				for (var j = 0; j < this.cols; j++) {
+					var rand = getRangeRandom(0, 4);
+					rowceil.push(rand);
+				}
+				this.state.push(rowceil);
+			}
+		},
+		exchange: function(location, direction) {
+			var state = this.state;
+			var x = location[0];
+			var y = location[1];
+			var targetX = x;
+			var targetY = y;
+			switch (direction) {
+				case 0:
+					targetX--;
+					break;
+				case 1:
+					targetY++;
+					break;
+				case 2:
+					targetX++;
+					break;
+				case 3:
+					targetY--;
+					break;
+				default:
+					alert("error!");
+			}
+			if (targetX >= 0 && targetX < state.length && targetY >= 0 && targetY < state[0].length) {
+				var dragColor = state[x][y];
+				state[x][y] = state[targetX][targetY];
+				state[targetX][targetY] = dragColor;
+			}
+			//this.showState();
+		},
+		cancel: function() {
+			var state = this.state;
+			var waitForCancel = [];
+			for (var c of colors) {
+				console.log(c);
+				for (var i = 0; i < state.length; i++) {
+					var counter = 0;
+					for (var j = 0; j <= state[0].length; j++) {
+						if (state[i][j] == c) {
+							counter++
+						} else {
+							if (counter > minCancelNum) {
+								for (var k = 0; k < counter; k++) {
+									//arr[i][j-(k+1)]=0;
+									waitForCancel.push([i, j - (k + 1)]);
+								}
+								counter = 0;
+							}
+						}
+					}
+				}
+
+			}
+			//纵向
+			for (var c of colors) {
+				console.log(c);
+				for (var i = 0; i < state[0].length; i++) {
+					var counter = 0;
+					for (var j = 0; j <= state.length; j++) {
+						if (state[j] && state[j][i] == c) {
+							counter++
+						} else {
+							if (counter > minCancelNum) {
+								for (var k = 0; k < counter; k++) {
+									//arr[i][j-(k+1)]=0;
+									waitForCancel.push([j - (k + 1), i]);
+								}
+								counter = 0;
+							}
+						}
+					}
+				}
+
+			}
+			//遍历记录的坐标，逐个清除
+			if (waitForCancel.length == 0) {
+				this.canBeCanceled = false;
+				return false;
+			} else {
+				for (var i = 0; i < waitForCancel.length; i++) {
+					var rowNum = waitForCancel[i][0];
+					var colNum = waitForCancel[i][1];
+					state[rowNum][colNum] = 0;
+				}
+				return true;
+			}
+			//this.showState();
+		},
+		adjust: function() {
+			var state = this.state;
+			for (var j = 0; j < state[0].length; j++) {
+				//复制非零元素
+				var tempArr = [];
+				for (var i = 0; i < state.length; i++) {
+					if (state[i][j]) {
+						tempArr.push(state[i][j])
+					}
+				}
+				//非零元素向下聚拢
+				for (var i = 0, k = state.length; i < k; i++) {
+					if (tempArr[i]) {
+						state[k-1 - i][j] = tempArr[tempArr.length-1 - i];
+					} else {
+						state[k-1 - i][j] = 0;
+					}
+
+				}
+			}
+			this.showState();
+		},
+		acceptInput: function(location, direction) {
+			this.exchange(location, direction);
+			while (this.cancel()) {
+				
+				this.adjust();
+			}
+		},
+		showState: function() {
+			var state = this.state;
+			for (var i = 0; i < state.length; i++) {
+				console.log(testArr[i])
+			}
+		}
+	}
+	//cancelStructure.init();
+	cancelStructure.acceptInput([0,0],0);
+	// cancelStructure.cancel();
+	// cancelStructure.adjust();
+	cancelStructure.showState();
+	function getRangeRandom(low, height) {
+		return Math.floor(Math.random() * (height - low) + low);
+	}
+	function createCancelCell(rows, cols, colors){
+		//要写这么多this？
+		this.state=[],
+		this.rows=rows,
+		this.cols=cols,
+		this.colors=colors,
+		this.minCancelNum=3,
+		this.canBeCanceled=true,
+		this.init=function() {
+			for (let i = 0; i < this.rows; i++) {
+				var rowceil = [];
+				for (var j = 0; j < this.cols; j++) {
+					var rand = getRangeRandom(0, 4);
+					rowceil.push(rand);
+				}
+				this.state.push(rowceil);
+			}
+		},
+		this.exchange=function(location, direction) {
+			var state = this.state;
+			var x = location[0];
+			var y = location[1];
+			var targetX = x;
+			var targetY = y;
+			switch (direction) {
+				case 0:
+					targetX--;
+					break;
+				case 1:
+					targetY++;
+					break;
+				case 2:
+					targetX++;
+					break;
+				case 3:
+					targetY--;
+					break;
+				default:
+					alert("error!");
+			}
+			if (targetX >= 0 && targetX < state.length && targetY >= 0 && targetY < state[0].length) {
+				var dragColor = state[x][y];
+				state[x][y] = state[targetX][targetY];
+				state[targetX][targetY] = dragColor;
+			}
+			//this.showState();
+		},
+		this.cancel=function() {
+			var state = this.state;
+			var waitForCancel = [];
+			for (var c of colors) {
+				console.log(c);
+				for (var i = 0; i < state.length; i++) {
+					var counter = 0;
+					for (var j = 0; j <= state[0].length; j++) {
+						if (state[i][j] == c) {
+							counter++
+						} else {
+							if (counter > minCancelNum) {
+								for (var k = 0; k < counter; k++) {
+									//arr[i][j-(k+1)]=0;
+									waitForCancel.push([i, j - (k + 1)]);
+								}
+								counter = 0;
+							}
+						}
+					}
+				}
+
+			}
+			//纵向
+			for (var c of colors) {
+				console.log(c);
+				for (var i = 0; i < state[0].length; i++) {
+					var counter = 0;
+					for (var j = 0; j <= state.length; j++) {
+						if (state[j] && state[j][i] == c) {
+							counter++
+						} else {
+							if (counter > minCancelNum) {
+								for (var k = 0; k < counter; k++) {
+									//arr[i][j-(k+1)]=0;
+									waitForCancel.push([j - (k + 1), i]);
+								}
+								counter = 0;
+							}
+						}
+					}
+				}
+
+			}
+			//遍历记录的坐标，逐个清除
+			if (waitForCancel.length == 0) {
+				this.canBeCanceled = false;
+				return false;
+			} else {
+				for (var i = 0; i < waitForCancel.length; i++) {
+					var rowNum = waitForCancel[i][0];
+					var colNum = waitForCancel[i][1];
+					state[rowNum][colNum] = 0;
+				}
+				return true;
+			}
+			//this.showState();
+		},
+		this.adjust=function() {
+			var state = this.state;
+			for (var j = 0; j < state[0].length; j++) {
+				//复制非零元素
+				var tempArr = [];
+				for (var i = 0; i < state.length; i++) {
+					if (state[i][j]) {
+						tempArr.push(state[i][j])
+					}
+				}
+				//非零元素向下聚拢
+				for (var i = 0, k = state.length; i < k; i++) {
+					if (tempArr[i]) {
+						state[k-1 - i][j] = tempArr[tempArr.length-1 - i];
+					} else {
+						state[k-1 - i][j] = 0;
+					}
+
+				}
+			}
+			this.showState();
+		},
+		this.acceptInput=function(location, direction) {
+			this.exchange(location, direction);
+			while (this.cancel()) {
+				
+				this.adjust();
+			}
+		},
+		this.showState=function() {
+			var state = this.state;
+			for (var i = 0; i < state.length; i++) {
+				console.log(testArr[i])
+			}
+		}		
+	}
+</script>
+</body>
+</html>

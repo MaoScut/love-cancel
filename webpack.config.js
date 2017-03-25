@@ -1,5 +1,5 @@
-var path =require('path');
-var webpack =require('webpack');
+var path = require('path');
+var webpack = require('webpack');
 var HtmlwebpackPlugin = require('html-webpack-plugin');
 
 var ROOT_PATH = path.resolve(__dirname);
@@ -21,28 +21,31 @@ module.exports = {
 	},
 
 	module: {
-		rules: [
-		{
+		rules: [{
 			test: /\.(js|jsx)$/,
 			enforce: "pre",
 			loader: "babel-loader",
 			include: APP_PATH
-			}
-		],
-		loaders: [
+		},
 		{
 			test: /\.(js|jsx)$/,
 			loader: 'babel-loader',
 			exclude: /node_modules/
+		}, 
+		{
+			test: /\.scss$/,
+			use: ["style-loader", "css-loader", "sass-loader"],
+			exclude: /node_modules/
+
 		}]
 	},
-	plugins: [
-		new HtmlwebpackPlugin({
-			title: 'love-cancel'
-		})
-	],
+	// plugins: [
+	// 	new HtmlwebpackPlugin({
+	// 		title: 'love-cancel'
+	// 	})
+	// ],
 	resolve: {
-		extensions:['.js', 'jsx']
+		extensions: ['.js', 'jsx']
 	}
 
-} 
+}
