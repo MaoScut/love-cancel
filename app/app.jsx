@@ -61,13 +61,24 @@ var CancelContainer = React.createClass({
 		return function(dir){
 		cancelCell.exchange([i,j],dir);
 		cancelCell.canBeCanceled = true;
-		while(cancelCell.canBeCanceled){
-			//debugger;
+		// while(cancelCell.canBeCanceled){
+		// 	debugger;
+		// 	cancelCell.cancel();
+		// 	cancelCell.adjust();
+		// 	this.setState(cancelCell);
+
+		// }
+		function timmer(){
 			cancelCell.cancel();
 			cancelCell.adjust();
+			console.log('timmer');
 			this.setState(cancelCell);
-
+			if(cancelCell.canBeCanceled){
+				setTimeout(timmer,3000);
+			}
 		}
+		timmer = timmer.bind(this);
+		timmer();
 		//debugger;
 	}.bind(this)
 	},
@@ -110,7 +121,8 @@ function createCancelCell(rows, cols, colors) {
 			for (let i = 0; i < this.rows; i++) {
 				var rowceil = [];
 				for (var j = 0; j < this.cols; j++) {
-					var rand = getRangeRandom(1, 6);
+					//depend s on how many colors
+					var rand = getRangeRandom(1, this.colors.length+1);
 					rowceil.push(rand);
 				}
 				this.state.push(rowceil);
@@ -231,7 +243,7 @@ function createCancelCell(rows, cols, colors) {
 		this.acceptInput = function(location, direction) {
 			this.exchange(location, direction);
 			while (this.cancel()) {
-
+				console.log('one time cancel!');
 				this.adjust();
 			}
 		},
