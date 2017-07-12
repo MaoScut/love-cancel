@@ -97,7 +97,7 @@ var CancelContainer = React.createClass({
 			</div>)
 	}
 });
-class App extends React.Component {
+export default class App extends React.Component {
 	constructor(props) {
 		super(props);
 	}
@@ -257,25 +257,26 @@ function createCancelCell(rows, cols, colors) {
 			}
 		}
 }
-	function getRangeRandom(low, height) {
-		return Math.floor(Math.random() * (height - low) + low);
-	}
-	function judgeDirection(down,up){
-		var arr = [];
-		arr[0] = -up.y+down.y;
-		arr[1] = up.x-down.x;
-		arr[2] = -down.y + up.y;
-		arr[3] = down.x - up.x;
-		var direction = 0;
-		var value = arr[0];
-		for(var i = 0;i<arr.length;i++){
-			if(arr[i]>value){
-				direction = i;
-				value = arr[i];
-			}
+function getRangeRandom(low, height) {
+	return Math.floor(Math.random() * (height - low) + low);
+}
+function judgeDirection(down,up){
+	var arr = [];
+	arr[0] = -up.y+down.y;
+	arr[1] = up.x-down.x;
+	arr[2] = -down.y + up.y;
+	arr[3] = down.x - up.x;
+	var direction = 0;
+	var value = arr[0];
+	for(var i = 0;i<arr.length;i++){
+		if(arr[i]>value){
+			direction = i;
+			value = arr[i];
 		}
-		return direction;
 	}
-const app = document.createElement('div');
-document.body.appendChild(app);
-ReactDOM.render(<App />, app);
+	return direction;
+}
+
+// const app = document.createElement('div');
+// document.body.appendChild(app);
+// ReactDOM.render(<App />, app);

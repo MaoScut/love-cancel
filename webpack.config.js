@@ -1,23 +1,31 @@
-var path = require('path');
+var { resolve } = require('path');
 var webpack = require('webpack');
-var HtmlwebpackPlugin = require('html-webpack-plugin');
-
-var ROOT_PATH = path.resolve(__dirname);
-var APP_PATH = path.resolve(ROOT_PATH, 'app');
-var BUILD_PATH = path.resolve(ROOT_PATH, 'build');
 
 module.exports = {
-	entry: {
-		app: path.resolve(APP_PATH, 'app.jsx')
-	},
+	entry: [
+    'react-hot-loader/patch',
+    // activate HMR for React
+
+    'webpack-dev-server/client?http://localhost:8080',
+    // bundle the client for webpack-dev-server
+    // and connect to the provided endpoint
+
+    'webpack/hot/only-dev-server',
+    // bundle the client for hot reloading
+    // only- means to only hot reload for successful updates
+
+    './app/index.jsx'
+    // the entry point of our app
+  ],
 	output: {
-		path: BUILD_PATH,
+		path: resolve(__dirname, 'build'),
 		filename: 'bundle.js'
 	},
-	devtool: 'eval-source-map',
+	devtool: 'inline-source-map',
 	devServer: {
 		historyApiFallback: true,
-		inline: true
+		inline: true,
+		hot: true,
 	},
 
 	module: {
@@ -25,27 +33,25 @@ module.exports = {
 			test: /\.(js|jsx)$/,
 			enforce: "pre",
 			loader: "babel-loader",
-			include: APP_PATH
+			include: /node_modules/,
 		},
 		{
 			test: /\.(js|jsx)$/,
 			loader: 'babel-loader',
-			exclude: /node_modules/
+			exclude: /node_modules/,
 		}, 
 		{
 			test: /\.scss$/,
 			use: ["style-loader", "css-loader", "sass-loader"],
-			exclude: /node_modules/
+			exclude: /node_modules/,
 
 		}]
 	},
-	// plugins: [
-	// 	new HtmlwebpackPlugin({
-	// 		title: 'love-cancel'
-	// 	})
-	// ],
+	plugins: [
+		new webpack.HotModuleReplacementPlugin(),
+		new webpack.NamedModulesPlugin(),
+	],
 	resolve: {
 		extensions: ['.js', 'jsx']
-	}
-
+	},
 }
