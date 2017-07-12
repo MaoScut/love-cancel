@@ -19,13 +19,13 @@ var CancelUnit = React.createClass({
 	markMouseDown: function(e){
 		onMouseDownX = e.screenX;
 		onMouseDownY = e.screenY;
-		console.log('mousedownX',onMouseDownX );
+		//console.log('mousedownX',onMouseDownX );
 	},
 	markMouseUp: function(e){
 		//debugger;
 		onMouseUpX = e.screenX;
 		onMouseUpY = e.screenY;
-		console.log('mouseupX',onMouseUpX );
+		//console.log('mouseupX',onMouseUpX );
 		var up = {
 			x: onMouseUpX,
 			y: onMouseUpY
@@ -69,12 +69,12 @@ var CancelContainer = React.createClass({
 
 		// }
 		function timmer(){
-			cancelCell.cancel();
+			let unfinished = cancelCell.cancel();
 			cancelCell.adjust();
 			console.log('timmer');
 			this.setState(cancelCell);
-			if(cancelCell.canBeCanceled){
-				setTimeout(timmer,3000);
+			if(unfinished){
+				setTimeout(timmer,1000);
 			}
 		}
 		timmer = timmer.bind(this);
@@ -108,7 +108,6 @@ export default class App extends React.Component {
 		)
 	}
 };
-
 function createCancelCell(rows, cols, colors) {
 	//要写这么多this？
 	this.state = [],
@@ -123,7 +122,10 @@ function createCancelCell(rows, cols, colors) {
 				for (var j = 0; j < this.cols; j++) {
 					//depend s on how many colors
 					var rand = getRangeRandom(1, this.colors.length+1);
-					rowceil.push(rand);
+					rowceil.push({
+						key: i+'+'+j,
+						color: rand,
+					});
 				}
 				this.state.push(rowceil);
 			}
@@ -151,10 +153,12 @@ function createCancelCell(rows, cols, colors) {
 				default:
 					alert("error!");
 			}
+			//maybe it is dragged out of bound
 			if (targetX >= 0 && targetX < state.length && targetY >= 0 && targetY < state[0].length) {
-				var dragColor = state[x][y];
+				//exchange two locations obj
+				var dragObj = state[x][y];
 				state[x][y] = state[targetX][targetY];
-				state[targetX][targetY] = dragColor;
+				state[targetX][targetY] = dragObj;
 			}
 			//this.showState();
 		},
@@ -162,11 +166,11 @@ function createCancelCell(rows, cols, colors) {
 			var state = this.state;
 			var waitForCancel = [];
 			for (var c of colors) {
-				console.log(c);
+				//console.log(c);
 				for (var i = 0; i < state.length; i++) {
 					var counter = 0;
 					for (var j = 0; j <= state[0].length; j++) {
-						if (state[i][j] == c) {
+						if (state[i][j].color == c) {
 							counter++
 						} else {
 							if (counter >= this.minCancelNum) {
@@ -184,11 +188,12 @@ function createCancelCell(rows, cols, colors) {
 			}
 			//纵向
 			for (var c of colors) {
-				console.log(c);
+				// console.log(c);
 				for (var i = 0; i < state[0].length; i++) {
 					var counter = 0;
 					for (var j = 0; j <= state.length; j++) {
-						if (state[j] && state[j][i] == c) {
+						//why judge state[j]?
+						if (state[j] && state[j][i].color == c) {
 							counter++
 						} else {
 							if (counter >= this.minCancelNum) {
@@ -212,7 +217,7 @@ function createCancelCell(rows, cols, colors) {
 				for (var i = 0; i < waitForCancel.length; i++) {
 					var rowNum = waitForCancel[i][0];
 					var colNum = waitForCancel[i][1];
-					state[rowNum][colNum] = 0;
+					state[rowNum][colNum].color = 0;
 				}
 				return true;
 			}
@@ -224,7 +229,7 @@ function createCancelCell(rows, cols, colors) {
 				//复制非零元素
 				var tempArr = [];
 				for (var i = 0; i < state.length; i++) {
-					if (state[i][j]) {
+					if (state[i][j].color) {
 						tempArr.push(state[i][j])
 					}
 				}
@@ -233,7 +238,7 @@ function createCancelCell(rows, cols, colors) {
 					if (tempArr[i]) {
 						state[k - 1 - i][j] = tempArr[tempArr.length - 1 - i];
 					} else {
-						state[k - 1 - i][j] = 0;
+						state[k - 1 - i][j] = null;
 					}
 
 				}
