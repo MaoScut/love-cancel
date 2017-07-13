@@ -1,7 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import uuid from 'uuid';
 require('../style/main.scss');
 var cancelCell = new createCancelCell(5,5,[1,2,3,4,5]);
+let cellHub = {};
 //debugger;
 cancelCell.init();
 var colorMap = {
@@ -58,51 +60,64 @@ var CancelUnit = React.createClass({
 	}
 });
 
-var CancelContainer = React.createClass({
-	exchange: function(i,j){
+class CancelContainer extends React.Component {
+	constructor(props){
+		super(props);
+		this.state = { cellHub };
+	}
+	exchange(i, j){
 		return function(dir){
 		cancelCell.exchange([i,j],dir);
-		this.setState(cancelCell);
-		cancelCell.canBeCanceled = true;
-		while(cancelCell.canBeCanceled){
-			debugger;
-			cancelCell.cancel();
-			this.setState(cancelCell);
-			// cancelCell.adjust();
-			// this.setState(cancelCell);
+		reLink(cellHub, cancelCell.state);
+		this.setState({cellHub});
+		// cancelCell.canBeCanceled = true;
+		// while(cancelCell.canBeCanceled){
+		// 	cancelCell.cancel();
+		// 	reLink(cellHub, cancelCell.state);
+		// 	this.setState({cellHub});
+		// 	cancelCell.adjust();
+		// 	reLink(cellHub, cancelCell.state);
+		// 	this.setState({cellHub});
 
-		}
+		// }
 		function timmer(){
 			let unfinished = cancelCell.cancel();
+			reLink(cellHub, cancelCell.state);
+			this.setState({cellHub});			
 			cancelCell.adjust();
+			reLink(cellHub, cancelCell.state);
+			this.setState({cellHub});
 			console.log('timmer');
-			this.setState(cancelCell);
 			if(unfinished){
-				setTimeout(timmer,3000);
+				setTimeout(timmer,1000);
 			}
 		}
 		timmer = timmer.bind(this);
-		//timmer();
+		timmer();
 		//debugger;
 	}.bind(this)
-	},
-	testExchange: ()=> {
+	}
+	testExchange(){
 		let temp1 = cancelCell.state[0][0];
 		let temp2 = cancelCell.state[0][1];
 		cancelCell.state[0][0] = temp2;
 		cancelCell.state[0][1] = temp1;
-		this.setState(cancelCell);
-	},
-	getInitialState: function(){
-		return cancelCell;
-	},
-	render: function(){
+		reLink(cellHub, cancelCell.state);
+		this.setState({cellHub});
+	}
+	render(){
 		var cancelUnitArr = [];
-		for(var i =0;i<cancelCell.state.length;i++){
-			for(var j = 0;j<cancelCell.state[0].length;j++){
-				if(this.state.state[i][j])
-					cancelUnitArr.push(<CancelUnit exchange = {this.exchange(i,j)} key = {this.state.state[i][j].key} color = {this.state.state[i][j].color} rowIndex = {i} colIndex = {j} />)
-			}
+		// for(var i =0;i<cancelCell.state.length;i++){
+		// 	for(var j = 0;j<cancelCell.state[0].length;j++){
+		// 		if(this.state.state[i][j])
+		// 			cancelUnitArr.push(<CancelUnit exchange = {this.exchange(i,j)} key = {this.state.state[i][j].key} color = {this.state.state[i][j].color} rowIndex = {i} colIndex = {j} />)
+		// 	}
+		// }
+		for(let k in cellHub){
+			let cellObj = cellHub[k];
+			let i = cellObj.row;
+			let j = cellObj.col;
+			cancelUnitArr.push(<CancelUnit exchange = {this.exchange(i,j)} key = {k} color = {cellObj.color} rowIndex = {i} colIndex = {j} />)
 		}
 		let style = {
 			position: 'absolute',
@@ -110,10 +125,10 @@ var CancelContainer = React.createClass({
 		}
 		return(<div className = 'container'>
 			{cancelUnitArr}
-			<button style={style} onClick={this.testExchange}>test!</button>
+			<button style={style} onClick={this.testExchange.bind(this)}>test!</button>
 			</div>)
 	}
-});
+}
 export default class App extends React.Component {
 	constructor(props) {
 		super(props);
@@ -139,10 +154,16 @@ function createCancelCell(rows, cols, colors) {
 				for (var j = 0; j < this.cols; j++) {
 					//depend s on how many colors
 					var rand = getRangeRandom(1, this.colors.length+1);
+					let key = uuid.v4();
 					rowceil.push({
-						key: i+'+'+j,
+						key: key,
 						color: rand,
 					});
+					cellHub[key] = {
+						color: rand,
+						row: i,
+						col: j,
+					}
 				}
 				this.state.push(rowceil);
 			}
@@ -176,6 +197,7 @@ function createCancelCell(rows, cols, colors) {
 				var dragObj = state[x][y];
 				state[x][y] = state[targetX][targetY];
 				state[targetX][targetY] = dragObj;
+				reLink(cellHub, state);
 			}
 			//this.showState();
 		},
@@ -302,3 +324,17 @@ function judgeDirection(down,up){
 // const app = document.createElement('div');
 // document.body.appendChild(app);
 // ReactDOM.render(<App />, app);
+function reLink(obj, state){
+	for(let i=0; i<state.length; i++){
+		for(let j =0; j<state[0].length; j++){
+			if(state[i][j]) {
+				let k = state[i][j].key;
+						obj[k] = {
+							row: i,
+							col: j,
+							color: state[i][j].color,
+						};
+					}
+		}
+	}
+}
