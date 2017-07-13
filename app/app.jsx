@@ -44,15 +44,17 @@ var CancelUnit = React.createClass({
 
 		var left = this.props.colIndex * containerWidth/cancelCell.cols;
 		var top = this.props.rowIndex * containerHeight/cancelCell.rows;
+		let colorNum = this.props.color;
 		var styleObj = {
 			left: left,
 			top: top,
-			backgroundColor: colorMap[this.props.color],
+			backgroundColor: colorMap[colorNum],
 			width: containerWidth/cancelCell.cols,
 			height: containerHeight/cancelCell.rows,
 			position: 'absolute'
 		}
-		return(<section onMouseDown = {this.markMouseDown} onDragEnd = {this.markMouseUp} draggable="true" style = {styleObj} />)
+		if(colorNum == 0) styleObj.opacity = 0;
+		return(<section className="cancel-unit" onMouseDown = {this.markMouseDown} onDragEnd = {this.markMouseUp} draggable="true" style = {styleObj} />)
 	}
 });
 
@@ -60,27 +62,36 @@ var CancelContainer = React.createClass({
 	exchange: function(i,j){
 		return function(dir){
 		cancelCell.exchange([i,j],dir);
+		this.setState(cancelCell);
 		cancelCell.canBeCanceled = true;
-		// while(cancelCell.canBeCanceled){
-		// 	debugger;
-		// 	cancelCell.cancel();
-		// 	cancelCell.adjust();
-		// 	this.setState(cancelCell);
+		while(cancelCell.canBeCanceled){
+			debugger;
+			cancelCell.cancel();
+			this.setState(cancelCell);
+			// cancelCell.adjust();
+			// this.setState(cancelCell);
 
-		// }
+		}
 		function timmer(){
 			let unfinished = cancelCell.cancel();
 			cancelCell.adjust();
 			console.log('timmer');
 			this.setState(cancelCell);
 			if(unfinished){
-				setTimeout(timmer,1000);
+				setTimeout(timmer,3000);
 			}
 		}
 		timmer = timmer.bind(this);
-		timmer();
+		//timmer();
 		//debugger;
 	}.bind(this)
+	},
+	testExchange: ()=> {
+		let temp1 = cancelCell.state[0][0];
+		let temp2 = cancelCell.state[0][1];
+		cancelCell.state[0][0] = temp2;
+		cancelCell.state[0][1] = temp1;
+		this.setState(cancelCell);
 	},
 	getInitialState: function(){
 		return cancelCell;
@@ -89,11 +100,17 @@ var CancelContainer = React.createClass({
 		var cancelUnitArr = [];
 		for(var i =0;i<cancelCell.state.length;i++){
 			for(var j = 0;j<cancelCell.state[0].length;j++){
-				cancelUnitArr.push(<CancelUnit exchange = {this.exchange(i,j)} key = {'unit'+i+j} color = {this.state.state[i][j]} rowIndex = {i} colIndex = {j} />)
+				if(this.state.state[i][j])
+					cancelUnitArr.push(<CancelUnit exchange = {this.exchange(i,j)} key = {this.state.state[i][j].key} color = {this.state.state[i][j].color} rowIndex = {i} colIndex = {j} />)
 			}
+		}
+		let style = {
+			position: 'absolute',
+			top: 800,
 		}
 		return(<div className = 'container'>
 			{cancelUnitArr}
+			<button style={style} onClick={this.testExchange}>test!</button>
 			</div>)
 	}
 });
@@ -170,7 +187,7 @@ function createCancelCell(rows, cols, colors) {
 				for (var i = 0; i < state.length; i++) {
 					var counter = 0;
 					for (var j = 0; j <= state[0].length; j++) {
-						if (state[i][j].color == c) {
+						if (state[i][j] && state[i][j].color == c) {
 							counter++
 						} else {
 							if (counter >= this.minCancelNum) {
@@ -193,7 +210,7 @@ function createCancelCell(rows, cols, colors) {
 					var counter = 0;
 					for (var j = 0; j <= state.length; j++) {
 						//why judge state[j]?
-						if (state[j] && state[j][i].color == c) {
+						if (state[j] && state[j][i] && state[j][i].color == c) {
 							counter++
 						} else {
 							if (counter >= this.minCancelNum) {
@@ -229,7 +246,7 @@ function createCancelCell(rows, cols, colors) {
 				//复制非零元素
 				var tempArr = [];
 				for (var i = 0; i < state.length; i++) {
-					if (state[i][j].color) {
+					if (state[i][j] && state[i][j].color) {
 						tempArr.push(state[i][j])
 					}
 				}
