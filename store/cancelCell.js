@@ -11,7 +11,9 @@ function CancelCell(rows, cols, colors) {
 	let matrix = this.matrix;
 	let cellHub = this.cellHub;
 	this.init = function() {
-		for (let i = 0; i < this.rows; i++) {
+		for (let i = -this.rows; i < this.rows; i++) {
+			if(i < 0) this.matrix[i] = [];
+			else {
 			var rowceil = [];
 			for (var j = 0; j < this.cols; j++) {
 				//depend s on how many colors
@@ -27,7 +29,9 @@ function CancelCell(rows, cols, colors) {
 					col: j,
 				}
 			}
-			this.matrix.push(rowceil);
+			//this.matrix.push(rowceil);
+			this.matrix[i] = rowceil;
+			}
 		}
 		//this.matrix = [[1,1,2,2,4,4],[4,4,4,4,2,2],[4,2,3,3,3,3],[4,2,2,1,1,1]];
 	};
@@ -126,6 +130,33 @@ function CancelCell(rows, cols, colors) {
 		}
 		//this.showmatrix();
 	};
+	this.fill = function() {
+		var matrix = this.matrix;
+		for (var j = 0; j < matrix[0].length; j++) {
+			//复制非零元素
+			var tempArr = [];
+			for (var i = 0; i < matrix.length; i++) {
+				if (matrix[i][j] && matrix[i][j].color) {
+					tempArr.push(matrix[i][j])
+				}
+			}
+			let fillNum = this.rows - tempArr.length;
+			for (let m = 0; m < fillNum; m++) {
+				let key = uuid.v4();
+				let color = getRangeRandom(1, 6);
+				//matrix[-(m + 1)] = [];
+				matrix[-(m + 1)][j] = {
+					key,
+					color,
+				};
+				this.cellHub[key] = {
+					color,
+					row: -(m + 1),
+					col: j,
+				}
+			}
+		}
+	};
 	this.adjust = function() {
 		var matrix = this.matrix;
 		for (var j = 0; j < matrix[0].length; j++) {
@@ -141,10 +172,16 @@ function CancelCell(rows, cols, colors) {
 				if (tempArr[i]) {
 					let obj = tempArr[tempArr.length - 1 - i];
 					matrix[k - 1 - i][j] = obj;
-					this.cellHub[obj.key].row = k-1-i;
+					this.cellHub[obj.key].row = k - 1 - i;
 					this.cellHub[obj.key].col = j;
 				} else {
-					matrix[k - 1 - i][j] = null;
+					let obj = matrix[k - 1 - i - (this.rows - tempArr.length)][j];
+					matrix[k - 1 - i][j] = obj;
+					this.cellHub[obj.key] = {
+						color: obj.color,
+						row: k - 1 - i,
+						col: j,
+					}
 				}
 			}
 		}
@@ -166,8 +203,12 @@ function CancelCell(rows, cols, colors) {
 			console.log(testArr[i])
 		}
 	};
-	function matrixElementSwap(location1, location2){
-		let i1 = location1[0], j1 = location1[1], i2 = location2[0], j2 = location2[1];
+
+	function matrixElementSwap(location1, location2) {
+		let i1 = location1[0],
+			j1 = location1[1],
+			i2 = location2[0],
+			j2 = location2[1];
 		let e1 = matrix[i1][j1];
 		let e2 = matrix[i2][j2];
 		let k1 = e1.key;
@@ -178,17 +219,27 @@ function CancelCell(rows, cols, colors) {
 		cellHub[k1].row = i2;
 		cellHub[k2].col = j2;
 		cellHub[k2].row = i1;
-		cellHub[k2].col = j1;		
+		cellHub[k2].col = j1;
 	}
+
 	function matrixElementCancel(i, j) {
 		let obj = matrix[i][j];
 		obj.color = 0;
-		delete cellHub[obj.key];
+		cellHub[obj.key].color = 0;
 	}
 }
-let cancelCell = new CancelCell(5,5,[1,2,3,4,5]);
+let cancelCell = new CancelCell(5, 5, [1, 2, 3, 4, 5]);
 cancelCell.init();
 export default cancelCell;
+
 function getRangeRandom(low, height) {
 	return Math.floor(Math.random() * (height - low) + low);
+}
+
+function createNewElement() {
+	let rand = getRangeRandom(1, 6);
+	return {
+		key: uuid.v4(),
+		color: rand,
+	}
 }

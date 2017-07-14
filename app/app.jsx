@@ -56,6 +56,7 @@ class CancelUnit extends React.Component{
 			height: containerHeight/cancelCell.rows,
 			position: 'absolute'
 		}
+		// if(colorNum == 0) styleObj.opacity = 0;
 		return(<section className="cancel-unit" onMouseDown = {this.markMouseDown} onDragEnd = {this.markMouseUp} draggable="true" style = {styleObj} />)
 	}
 }
@@ -82,9 +83,21 @@ class CancelContainer extends React.Component {
 		function timmer(){
 			let unfinished = cancelCell.cancel();
 			this.setState({ cellHub: cancelCell.cellHub });
+
+			function fill(){
+			cancelCell.fill();
+			this.setState({cellHub: cancelCell.cellHub});
+			}
+			setTimeout(fill.bind(this), 100);
+
+			function adj(){
 			cancelCell.adjust();
 			this.setState({ cellHub: cancelCell.cellHub });
-			console.log('timmer');
+			}
+			setTimeout(adj.bind(this), 200);
+			// cancelCell.adjust();
+			// this.setState({ cellHub: cancelCell.cellHub });
+			// console.log('timmer');
 			if(unfinished){
 				setTimeout(timmer,1000);
 			}
