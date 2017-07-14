@@ -1,11 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import uuid from 'uuid';
+import cancelCell from '../store/cancelCell.js';
 require('../style/main.scss');
-var cancelCell = new createCancelCell(5,5,[1,2,3,4,5]);
-let cellHub = {};
-//debugger;
-cancelCell.init();
+
 var colorMap = {
 	1: 'green',
 	2: 'yellow',
@@ -17,13 +14,17 @@ var onMouseDownX = 0;
 var onMouseDownY = 0;
 var onMouseUpX = 0;
 var onMouseUpY = 0;
-var CancelUnit = React.createClass({
-	markMouseDown: function(e){
+class CancelUnit extends React.Component{
+	constructor(props){
+		super(props);
+		this.markMouseUp = this.markMouseUp.bind(this);
+	}
+	markMouseDown(e){
 		onMouseDownX = e.screenX;
 		onMouseDownY = e.screenY;
 		//console.log('mousedownX',onMouseDownX );
-	},
-	markMouseUp: function(e){
+	}
+	markMouseUp(e){
 		//debugger;
 		onMouseUpX = e.screenX;
 		onMouseUpY = e.screenY;
@@ -39,8 +40,8 @@ var CancelUnit = React.createClass({
 		//debugger;
 		var direction = judgeDirection(down,up);
 		this.props.exchange(direction);
-	},
-	render: function(){
+	}
+	render(){
 		var containerWidth = 450;
 		var containerHeight = 600;
 
@@ -55,21 +56,19 @@ var CancelUnit = React.createClass({
 			height: containerHeight/cancelCell.rows,
 			position: 'absolute'
 		}
-		if(colorNum == 0) styleObj.opacity = 0;
 		return(<section className="cancel-unit" onMouseDown = {this.markMouseDown} onDragEnd = {this.markMouseUp} draggable="true" style = {styleObj} />)
 	}
-});
+}
 
 class CancelContainer extends React.Component {
 	constructor(props){
 		super(props);
-		this.state = { cellHub };
+		this.state = { cellHub: cancelCell.cellHub };
 	}
 	exchange(i, j){
 		return function(dir){
 		cancelCell.exchange([i,j],dir);
-		reLink(cellHub, cancelCell.state);
-		this.setState({cellHub});
+		this.setState({ cellHub: cancelCell.cellHub });
 		// cancelCell.canBeCanceled = true;
 		// while(cancelCell.canBeCanceled){
 		// 	cancelCell.cancel();
@@ -82,11 +81,9 @@ class CancelContainer extends React.Component {
 		// }
 		function timmer(){
 			let unfinished = cancelCell.cancel();
-			reLink(cellHub, cancelCell.state);
-			this.setState({cellHub});			
+			this.setState({ cellHub: cancelCell.cellHub });
 			cancelCell.adjust();
-			reLink(cellHub, cancelCell.state);
-			this.setState({cellHub});
+			this.setState({ cellHub: cancelCell.cellHub });
 			console.log('timmer');
 			if(unfinished){
 				setTimeout(timmer,1000);
@@ -97,14 +94,6 @@ class CancelContainer extends React.Component {
 		//debugger;
 	}.bind(this)
 	}
-	testExchange(){
-		let temp1 = cancelCell.state[0][0];
-		let temp2 = cancelCell.state[0][1];
-		cancelCell.state[0][0] = temp2;
-		cancelCell.state[0][1] = temp1;
-		reLink(cellHub, cancelCell.state);
-		this.setState({cellHub});
-	}
 	render(){
 		var cancelUnitArr = [];
 		// for(var i =0;i<cancelCell.state.length;i++){
@@ -113,8 +102,8 @@ class CancelContainer extends React.Component {
 		// 			cancelUnitArr.push(<CancelUnit exchange = {this.exchange(i,j)} key = {this.state.state[i][j].key} color = {this.state.state[i][j].color} rowIndex = {i} colIndex = {j} />)
 		// 	}
 		// }
-		for(let k in cellHub){
-			let cellObj = cellHub[k];
+		for(let k in cancelCell.cellHub){
+			let cellObj = cancelCell.cellHub[k];
 			let i = cellObj.row;
 			let j = cellObj.col;
 			cancelUnitArr.push(<CancelUnit exchange = {this.exchange(i,j)} key = {k} color = {cellObj.color} rowIndex = {i} colIndex = {j} />)
@@ -125,7 +114,6 @@ class CancelContainer extends React.Component {
 		}
 		return(<div className = 'container'>
 			{cancelUnitArr}
-			<button style={style} onClick={this.testExchange.bind(this)}>test!</button>
 			</div>)
 	}
 }
@@ -140,170 +128,7 @@ export default class App extends React.Component {
 		)
 	}
 };
-function createCancelCell(rows, cols, colors) {
-	//要写这么多this？
-	this.state = [],
-		this.rows = rows,
-		this.cols = cols,
-		this.colors = colors,
-		this.minCancelNum = 3,
-		this.canBeCanceled = true,
-		this.init = function() {
-			for (let i = 0; i < this.rows; i++) {
-				var rowceil = [];
-				for (var j = 0; j < this.cols; j++) {
-					//depend s on how many colors
-					var rand = getRangeRandom(1, this.colors.length+1);
-					let key = uuid.v4();
-					rowceil.push({
-						key: key,
-						color: rand,
-					});
-					cellHub[key] = {
-						color: rand,
-						row: i,
-						col: j,
-					}
-				}
-				this.state.push(rowceil);
-			}
-			//this.state = [[1,1,2,2,4,4],[4,4,4,4,2,2],[4,2,3,3,3,3],[4,2,2,1,1,1]];
-		},
-		this.exchange = function(location, direction) {
-			var state = this.state;
-			var x = location[0];
-			var y = location[1];
-			var targetX = x;
-			var targetY = y;
-			switch (direction) {
-				case 0:
-					targetX--;
-					break;
-				case 1:
-					targetY++;
-					break;
-				case 2:
-					targetX++;
-					break;
-				case 3:
-					targetY--;
-					break;
-				default:
-					alert("error!");
-			}
-			//maybe it is dragged out of bound
-			if (targetX >= 0 && targetX < state.length && targetY >= 0 && targetY < state[0].length) {
-				//exchange two locations obj
-				var dragObj = state[x][y];
-				state[x][y] = state[targetX][targetY];
-				state[targetX][targetY] = dragObj;
-				reLink(cellHub, state);
-			}
-			//this.showState();
-		},
-		this.cancel = function() {
-			var state = this.state;
-			var waitForCancel = [];
-			for (var c of colors) {
-				//console.log(c);
-				for (var i = 0; i < state.length; i++) {
-					var counter = 0;
-					for (var j = 0; j <= state[0].length; j++) {
-						if (state[i][j] && state[i][j].color == c) {
-							counter++
-						} else {
-							if (counter >= this.minCancelNum) {
-								for (var k = 0; k < counter; k++) {
-									//arr[i][j-(k+1)]=0;
-									waitForCancel.push([i, j - (k + 1)]);
-								}
-								
-							}
-							counter = 0;
-						}
-					}
-				}
 
-			}
-			//纵向
-			for (var c of colors) {
-				// console.log(c);
-				for (var i = 0; i < state[0].length; i++) {
-					var counter = 0;
-					for (var j = 0; j <= state.length; j++) {
-						//why judge state[j]?
-						if (state[j] && state[j][i] && state[j][i].color == c) {
-							counter++
-						} else {
-							if (counter >= this.minCancelNum) {
-								for (var k = 0; k < counter; k++) {
-									//arr[i][j-(k+1)]=0;
-									waitForCancel.push([j - (k + 1), i]);
-								}
-								
-							}
-							counter = 0;
-						}
-					}
-				}
-
-			}
-			//遍历记录的坐标，逐个清除
-			if (waitForCancel.length == 0) {
-				this.canBeCanceled = false;
-				return false;
-			} else {
-				for (var i = 0; i < waitForCancel.length; i++) {
-					var rowNum = waitForCancel[i][0];
-					var colNum = waitForCancel[i][1];
-					state[rowNum][colNum].color = 0;
-				}
-				return true;
-			}
-			//this.showState();
-		},
-		this.adjust = function() {
-			var state = this.state;
-			for (var j = 0; j < state[0].length; j++) {
-				//复制非零元素
-				var tempArr = [];
-				for (var i = 0; i < state.length; i++) {
-					if (state[i][j] && state[i][j].color) {
-						tempArr.push(state[i][j])
-					}
-				}
-				//非零元素向下聚拢
-				for (var i = 0, k = state.length; i < k; i++) {
-					if (tempArr[i]) {
-						state[k - 1 - i][j] = tempArr[tempArr.length - 1 - i];
-					} else {
-						state[k - 1 - i][j] = null;
-					}
-
-				}
-			}
-			//this.showState();
-		},
-		this.acceptInput = function(location, direction) {
-			this.exchange(location, direction);
-			while (this.cancel()) {
-				console.log('one time cancel!');
-				this.adjust();
-			}
-		},
-		this.interface = function(location, direction){
-			this.exchange(location, direction);
-		}
-		this.showState = function() {
-			var state = this.state;
-			for (var i = 0; i < state.length; i++) {
-				console.log(testArr[i])
-			}
-		}
-}
-function getRangeRandom(low, height) {
-	return Math.floor(Math.random() * (height - low) + low);
-}
 function judgeDirection(down,up){
 	var arr = [];
 	arr[0] = -up.y+down.y;
