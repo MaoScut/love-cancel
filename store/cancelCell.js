@@ -1,5 +1,11 @@
-import uuid from 'uuid';
+// import uuid from 'uuid';
 
+/**
+ * [CancelCell description]
+ * @param {number} rows   rows of game matrix
+ * @param {number} cols   cols of game martix
+ * @param {number} colors number of colors
+ */
 function CancelCell(rows, cols, colors) {
 	this.matrix = [];
 	this.cellHub = {};
@@ -10,6 +16,7 @@ function CancelCell(rows, cols, colors) {
 	this.canBeCanceled = true;
 	let matrix = this.matrix;
 	let cellHub = this.cellHub;
+	// should show a empty first of show a colorful martix directly?
 	this.init = function() {
 		for (let i = -this.rows; i < this.rows; i++) {
 			if(i < 0) this.matrix[i] = [];
@@ -228,9 +235,9 @@ function CancelCell(rows, cols, colors) {
 		cellHub[obj.key].color = 0;
 	}
 }
-let cancelCell = new CancelCell(5, 5, [1, 2, 3, 4, 5]);
-cancelCell.init();
-export default cancelCell;
+// let cancelCell = new CancelCell(5, 5, [1, 2, 3, 4, 5]);
+// cancelCell.init();
+// export default cancelCell;
 
 function getRangeRandom(low, height) {
 	return Math.floor(Math.random() * (height - low) + low);
@@ -242,4 +249,73 @@ function createNewElement() {
 		key: uuid.v4(),
 		color: rand,
 	}
+}
+
+function createDifferentColorMatrix(rows, cols, colors) {
+	let matrix = createDifferentColorMatrix(rows, cols, colors);
+	let conflictNum = 0;
+	function modifyColor(i, j) {
+		let num = 0;
+		let candidate = [[i-1, j], [i, j+1], [i+1, j], [i, j-1]];
+		let colorAround = [];
+		for (let k = 0; k < candidate.length; k ++) {
+			let [rowIndex, colIndex] = candidate[k];
+			if(rowIndex < -1 || colIndex < -1 || rowIndex == rows || colIndex == cols)
+				num += 0;
+			else {
+				colorAround.push(matrix[rowIndex][colIndex]);
+				if(matrix[i, j] == matrix[rowIndex][colIndex])
+					num ++;
+			}
+		}
+		if(num == 0) return 0;
+		else {
+			// first we find a min conflict color
+			let c = Infinity;
+			let colorIndex;
+			for(let i = 0; i < colors; i ++) {
+				let _c = 0;
+				for(let j = 0; j < colorAround.length; j ++) {
+					if(colorAround[j] == i)
+						_c ++
+				}
+				if(_c < c) {
+					c = _c;
+					colorIndex = i;
+				}
+			}
+			// modify the color at row i col j
+			matrix[i][j] = colorIndex;
+			return c;
+		}
+	}
+	while(conflictNum > 0) {
+		conflictNum = 0;
+		for(let i = 0; i < rows; i ++) {
+			for(let j = 0; j < cols; j ++) {
+				conflictNum += modifyColor(i, j);
+			}
+		}
+	}
+	matrix.forEach(v => console.log(v));
+	return matrix;
+}
+createDifferentColorMatrix(5, 5, 5);
+/**
+ * [createRandomColorMatrix description]
+ * @param  {[type]} rows   [description]
+ * @param  {[type]} cols   [description]
+ * @param  {[type]} colors [description]
+ * @return {[type]}        [description]
+ */
+function createRandomColorMatrix(rows, cols, colors) {
+	let matrix = new Array(rows);
+	for(let i = 0; i < rows; i ++) {
+		let rowCell = new Array(j);
+		for(let j = 0; j < cols; j ++) {
+			rowCell[j] = getRangeRandom(0, colors);
+		}
+		matrix[i] = rowCell;
+	}
+	return matrix;
 }
