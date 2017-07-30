@@ -4,7 +4,7 @@ import {AppContainer} from 'react-hot-loader';
 
 import App from './app.jsx';//why must add  suffix?
 
-//why can't find the dom, coz iin the html, the dom is behind js!
+//why can't find the dom, coz in the html, the dom is behind js!
 //console.log(document.getElementById('root'));
 const render = (Component)=>{//the first letter must be capital!
 	ReactDom.render(
