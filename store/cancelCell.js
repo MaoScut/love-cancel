@@ -62,11 +62,6 @@ function CancelCell(rows, cols, colors) {
 		}
 		//maybe it is dragged out of bound
 		if (targetX >= 0 && targetX < matrix.length && targetY >= 0 && targetY < matrix[0].length) {
-			//exchange two locations obj
-			// var dragObj = matrix[x][y];
-			// matrix[x][y] = matrix[targetX][targetY];
-			// matrix[targetX][targetY] = dragObj;
-			// reLink(cellHub, matrix);
 			matrixElementSwap([x, y], [targetX, targetY], matrix);
 		}
 		//this.showmatrix();
@@ -87,13 +82,11 @@ function CancelCell(rows, cols, colors) {
 								//arr[i][j-(k+1)]=0;
 								waitForCancel.push([i, j - (k + 1)]);
 							}
-
 						}
 						counter = 0;
 					}
 				}
 			}
-
 		}
 		//纵向
 		for (var c of colors) {
@@ -110,13 +103,11 @@ function CancelCell(rows, cols, colors) {
 								//arr[i][j-(k+1)]=0;
 								waitForCancel.push([j - (k + 1), i]);
 							}
-
 						}
 						counter = 0;
 					}
 				}
 			}
-
 		}
 		//遍历记录的坐标，逐个清除
 		if (waitForCancel.length == 0) {
@@ -162,33 +153,47 @@ function CancelCell(rows, cols, colors) {
 	};
 	this.adjust = function() {
 		var matrix = this.matrix;
-		for (var j = 0; j < matrix[0].length; j++) {
-			//复制非零元素
-			var tempArr = [];
-			for (var i = 0; i < matrix.length; i++) {
-				if (matrix[i][j] && matrix[i][j].color) {
-					tempArr.push(matrix[i][j])
-				}
-			}
-			//非零元素向下聚拢
-			for (var i = 0, k = matrix.length; i < k; i++) {
-				if (tempArr[i]) {
-					let obj = tempArr[tempArr.length - 1 - i];
-					matrix[k - 1 - i][j] = obj;
-					this.cellHub[obj.key].row = k - 1 - i;
-					this.cellHub[obj.key].col = j;
-				} else {
-					let obj = matrix[k - 1 - i - (this.rows - tempArr.length)][j];
-					matrix[k - 1 - i][j] = obj;
-					this.cellHub[obj.key] = {
-						color: obj.color,
-						row: k - 1 - i,
-						col: j,
-					}
+		// for (var j = 0; j < matrix[0].length; j++) {
+		// 	//复制非零元素
+		// 	var tempArr = [];
+		// 	for (var i = 0; i < matrix.length; i++) {
+		// 		if (matrix[i][j] && matrix[i][j].color) {
+		// 			tempArr.push(matrix[i][j])
+		// 		}
+		// 	}
+		// 	//非零元素向下聚拢
+		// 	for (var i = 0, k = matrix.length; i < k; i++) {
+		// 		if (tempArr[i]) {
+		// 			let obj = tempArr[tempArr.length - 1 - i];
+		// 			matrix[k - 1 - i][j] = obj;
+		// 			this.cellHub[obj.key].row = k - 1 - i;
+		// 			this.cellHub[obj.key].col = j;
+		// 		} else {
+		// 			let obj = matrix[k - 1 - i - (this.rows - tempArr.length)][j];
+		// 			matrix[k - 1 - i][j] = obj;
+		// 			this.cellHub[obj.key] = {
+		// 				color: obj.color,
+		// 				row: k - 1 - i,
+		// 				col: j,
+		// 			}
+		// 		}
+		// 	}
+		// }
+		//this.showmatrix();
+		for(let j = 0; j < matrix[0].length; j ++) {
+			let postion = matrix.length - 1;
+			for(let i = matrix.length - 1; i >= -matrix.length; i--) {
+				if(matrix[i][j].color == 0)
+					continue
+				else {
+					matrix[postion][j] = matrix[i][j];
+					let key = matrix[postion][j].key;
+					this.cellHub[key].row = postion;
+					postion --;
+					if(postion == -1) break;
 				}
 			}
 		}
-		//this.showmatrix();
 	};
 	this.acceptInput = function(location, direction) {
 		this.exchange(location, direction);
@@ -220,7 +225,7 @@ function CancelCell(rows, cols, colors) {
 		[matrix[i1][j1], matrix[i2][j2]] = [matrix[i2][j2], matrix[i1][j1]];
 		//modify cellHub
 		cellHub[k1].row = i2;
-		cellHub[k2].col = j2;
+		cellHub[k1].col = j2;
 		cellHub[k2].row = i1;
 		cellHub[k2].col = j1;
 	}
