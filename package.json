@@ -17,7 +17,7 @@
   },
   "scripts": {
     "build": "webpack",
-    "start": "webpack-dev-server"
+    "dev": "webpack-dev-server"
   },
   "dependencies": {
     "react": "^15.6.1",
