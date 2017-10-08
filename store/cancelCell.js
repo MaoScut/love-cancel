@@ -3,7 +3,7 @@ import uuid from 'uuid';
 /**
  * [CancelCell description]
  * @param {number} rows   rows of game matrix
- * @param {number} cols   cols of game martix
+ * @param {number} cols   cols of game matrix
  * @param {number} colors number of colors
  */
 function CancelCell(rows, cols, colors) {
@@ -14,15 +14,16 @@ function CancelCell(rows, cols, colors) {
 	this.colors = colors;
 	this.minCancelNum = 3;
 	this.canBeCanceled = true;
+	this.status = 0;
 	let matrix = this.matrix;
 	let cellHub = this.cellHub;
 	// should show a empty first of show a colorful martix directly?
-	this.init = function() {
+	this.init = function () {
 		this.matrix = createDifferentColorMatrix(this.rows, this.cols, this.colors);
-		for(let i = -this.rows; i < this.rows; i ++) {
-			if(i < 0) this.matrix[i] = [];
-			else{
-				for(let j = 0; j < this.cols; j ++) {
+		for (let i = -this.rows; i < this.rows; i++) {
+			if (i < 0) this.matrix[i] = [];
+			else {
+				for (let j = 0; j < this.cols; j++) {
 					let colorIndex = this.matrix[i][j];
 					let key = uuid.v4();
 					this.matrix[i][j] = {
@@ -38,7 +39,7 @@ function CancelCell(rows, cols, colors) {
 			}
 		}
 	};
-	this.exchange = function(location, direction) {
+	this.exchange = function (location, direction) {
 		var matrix = this.matrix;
 		var x = location[0];
 		var y = location[1];
@@ -62,11 +63,14 @@ function CancelCell(rows, cols, colors) {
 		}
 		//maybe it is dragged out of bound
 		if (targetX >= 0 && targetX < matrix.length && targetY >= 0 && targetY < matrix[0].length) {
+			this.status = 1;
 			matrixElementSwap([x, y], [targetX, targetY], matrix);
+			this.cb({
+				cellHub: this.cellHub,
+			})
 		}
-		//this.showmatrix();
 	};
-	this.cancel = function() {
+	this.cancel = function () {
 		var matrix = this.matrix;
 		var waitForCancel = [];
 		for (var c of colors) {
@@ -111,9 +115,11 @@ function CancelCell(rows, cols, colors) {
 		}
 		//遍历记录的坐标，逐个清除
 		if (waitForCancel.length == 0) {
+			this.status = 0;
 			this.canBeCanceled = false;
 			return false;
 		} else {
+			this.status = 2;
 			for (var i = 0; i < waitForCancel.length; i++) {
 				var row = waitForCancel[i][0];
 				var col = waitForCancel[i][1];
@@ -124,8 +130,9 @@ function CancelCell(rows, cols, colors) {
 		}
 		//this.showmatrix();
 	};
-	this.fill = function() {
+	this.fill = function () {
 		var matrix = this.matrix;
+		this.status = 3;
 		for (var j = 0; j < matrix[0].length; j++) {
 			//复制非零元素
 			var tempArr = [];
@@ -151,7 +158,8 @@ function CancelCell(rows, cols, colors) {
 			}
 		}
 	};
-	this.adjust = function() {
+	this.adjust = function () {
+		this.status = 1;
 		var matrix = this.matrix;
 		// for (var j = 0; j < matrix[0].length; j++) {
 		// 	//复制非零元素
@@ -180,38 +188,76 @@ function CancelCell(rows, cols, colors) {
 		// 	}
 		// }
 		//this.showmatrix();
-		for(let j = 0; j < matrix[0].length; j ++) {
+		for (let j = 0; j < matrix[0].length; j++) {
 			let postion = matrix.length - 1;
-			for(let i = matrix.length - 1; i >= -matrix.length; i--) {
-				if(matrix[i][j].color == 0)
+			for (let i = matrix.length - 1; i >= -matrix.length; i--) {
+				if (matrix[i][j].color == 0)
 					continue
 				else {
 					matrix[postion][j] = matrix[i][j];
 					let key = matrix[postion][j].key;
 					this.cellHub[key].row = postion;
-					postion --;
-					if(postion == -1) break;
+					postion--;
+					if (postion == -1) break;
 				}
 			}
 		}
 	};
-	this.acceptInput = function(location, direction) {
+	this.acceptInput = function (location, direction) {
 		this.exchange(location, direction);
 		while (this.cancel()) {
 			console.log('one time cancel!');
 			this.adjust();
 		}
 	};
-	this.interface = function(location, direction) {
+	this.interface = function (location, direction) {
 		this.exchange(location, direction);
 	};
-	this.showMatrix = function() {
+	this.showMatrix = function () {
 		var matrix = this.matrix;
 		for (var i = 0; i < matrix.length; i++) {
 			console.log(testArr[i])
 		}
 	};
-
+	this.start = function () {
+		while (this.canBeCanceled) {
+			this.cancel();
+			this.cb({
+				cellHub: this.cellHub,
+			});
+			this.fill();
+			this.cb({
+				cellHub: this.cellHub,
+			});
+			this.adjust();
+			this.cb({
+				cellHub: this.cellHub,
+			});
+		}
+	}
+	this.next = function () {
+		if (this.status === 1) {
+			this.cancel();
+			this.cb({
+				cellHub: this.cellHub,
+			});
+			return;
+		}
+		if (this.status === 2) {
+			this.fill();
+			this.cb({
+				cellHub: this.cellHub,
+			});
+			return;
+		}
+		if (this.status === 3) {
+			this.adjust();
+			this.cb({
+				cellHub: this.cellHub,
+			});
+			return;
+		}
+	}
 	function matrixElementSwap(location1, location2, matrix) {
 		let i1 = location1[0],
 			j1 = location1[1],
@@ -260,30 +306,30 @@ function createDifferentColorMatrix(rows, cols, colors) {
 	let wTime = 0;
 	function modifyColor(i, j) {
 		let num = 0;
-		let candidate = [[i-1, j], [i, j+1], [i+1, j], [i, j-1]];
+		let candidate = [[i - 1, j], [i, j + 1], [i + 1, j], [i, j - 1]];
 		let colorAround = [];
-		for (let k = 0; k < candidate.length; k ++) {
+		for (let k = 0; k < candidate.length; k++) {
 			let [rowIndex, colIndex] = candidate[k];
-			if(rowIndex == -1 || colIndex == -1 || rowIndex == rows || colIndex == cols)
+			if (rowIndex == -1 || colIndex == -1 || rowIndex == rows || colIndex == cols)
 				num += 0;
 			else {
 				colorAround.push(matrix[rowIndex][colIndex]);
-				if(matrix[i][j] == matrix[rowIndex][colIndex]) 
-					num ++;
+				if (matrix[i][j] == matrix[rowIndex][colIndex])
+					num++;
 			}
 		}
-		if(num == 0) return 0;
+		if (num == 0) return 0;
 		else {
 			// first we find a min conflict color
 			let c = Infinity;
 			let colorIndex;
-			for(let i = 0; i < colors.length; i ++) {
+			for (let i = 0; i < colors.length; i++) {
 				let _c = 0;
-				for(let j = 0; j < colorAround.length; j ++) {
-					if(colorAround[j] == colors[i])
-						_c ++
+				for (let j = 0; j < colorAround.length; j++) {
+					if (colorAround[j] == colors[i])
+						_c++
 				}
-				if(_c < c) {
+				if (_c < c) {
 					c = _c;
 					colorIndex = colors[i];
 				}
@@ -293,11 +339,11 @@ function createDifferentColorMatrix(rows, cols, colors) {
 			return c;
 		}
 	}
-	while(conflictNum > 0) {
+	while (conflictNum > 0) {
 		conflictNum = 0;
-		wTime ++;
-		for(let i = 0; i < rows; i ++) {
-			for(let j = 0; j < cols; j ++) {
+		wTime++;
+		for (let i = 0; i < rows; i++) {
+			for (let j = 0; j < cols; j++) {
 				conflictNum += modifyColor(i, j);
 			}
 		}
@@ -317,9 +363,9 @@ function createDifferentColorMatrix(rows, cols, colors) {
  */
 function createRandomColorMatrix(rows, cols, colors) {
 	let matrix = new Array(rows);
-	for(let i = 0; i < rows; i ++) {
+	for (let i = 0; i < rows; i++) {
 		let rowCell = new Array(cols);
-		for(let j = 0; j < cols; j ++) {
+		for (let j = 0; j < cols; j++) {
 			rowCell[j] = getRangeRandom(colors[0], colors.length + 1);
 		}
 		matrix[i] = rowCell;
