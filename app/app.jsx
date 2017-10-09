@@ -67,8 +67,8 @@ class CancelContainer extends React.Component {
 		this.state = { cellHub: cancelCell.cellHub };
 	}
 	componentDidUpdate() {
-		if (cancelCell.canBeCanceled === false && cancelCell.status === 0) return;
-		cancelCell.next();
+		if (cancelCell.canBeCanceled === false) return;
+		setTimeout(() => cancelCell.next(), 300);
 	}
 	componentDidMount() {
 		cancelCell.cb = this.setState.bind(this);
