@@ -13,11 +13,6 @@ module.exports = {
     filename: 'bundle.js',
   },
   devtool: 'inline-source-map',
-  devServer: {
-    // historyApiFallback: true,
-    inline: true,
-    hot: true,
-  },
 
   module: {
     rules: [{
@@ -27,8 +22,6 @@ module.exports = {
     {
       test: /\.scss$/,
       use: ['style-loader', 'css-loader', 'sass-loader'],
-      exclude: /node_modules/,
-
     }],
   },
   plugins: [
