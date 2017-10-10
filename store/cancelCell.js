@@ -1,70 +1,77 @@
 import uuid from 'uuid';
 
 function getRangeRandom(low, height) {
-  return Math.floor(Math.random() * (height - low) + low);
+  return Math.floor((Math.random() * (height - low)) + low);
 }
 
-function createNewElement() {
-  let rand = getRangeRandom(1, 6);
-  return {
-    key: uuid.v4(),
-    color: rand,
+// function createNewElement() {
+//   let rand = getRangeRandom(1, 6);
+//   return {
+//     key: uuid.v4(),
+//     color: rand,
+//   }
+// }
+function createRandomColorMatrix(rows, cols, colors) {
+  const matrix = new Array(rows);
+  for (let i = 0; i < rows; i += 1) {
+    const rowCell = new Array(cols);
+    for (let j = 0; j < cols; j += 1) {
+      rowCell[j] = getRangeRandom(colors[0], colors.length + 1);
+    }
+    matrix[i] = rowCell;
   }
+  return matrix;
 }
-
 function createDifferentColorMatrix(rows, cols, colors) {
-  let matrix = createRandomColorMatrix(rows, cols, colors);
+  const matrix = createRandomColorMatrix(rows, cols, colors);
   // console.log('before');
   // matrix.forEach(v => console.log(v));
   let conflictNum = Infinity;
-  let wTime = 0;
+  // let wTime = 0;
   function modifyColor(i, j) {
     let num = 0;
-    let candidate = [[i - 1, j], [i, j + 1], [i + 1, j], [i, j - 1]];
-    let colorAround = [];
-    for (let k = 0; k < candidate.length; k++) {
-      let [rowIndex, colIndex] = candidate[k];
-      if (rowIndex == -1 || colIndex == -1 || rowIndex == rows || colIndex == cols)
+    const candidate = [[i - 1, j], [i, j + 1], [i + 1, j], [i, j - 1]];
+    const colorAround = [];
+    for (let k = 0; k < candidate.length; k += 1) {
+      const [rowIndex, colIndex] = candidate[k];
+      if (rowIndex === -1 || colIndex === -1 || rowIndex === rows || colIndex === cols) {
         num += 0;
-      else {
+      } else {
         colorAround.push(matrix[rowIndex][colIndex]);
-        if (matrix[i][j] == matrix[rowIndex][colIndex])
-          num++;
-      }
-    }
-    if (num == 0) return 0;
-    else {
-      // first we find a min conflict color
-      let c = Infinity;
-      let colorIndex;
-      for (let i = 0; i < colors.length; i++) {
-        let _c = 0;
-        for (let j = 0; j < colorAround.length; j++) {
-          if (colorAround[j] == colors[i])
-            _c++
-        }
-        if (_c < c) {
-          c = _c;
-          colorIndex = colors[i];
+        if (matrix[i][j] === matrix[rowIndex][colIndex]) {
+          num += 1;
         }
       }
-      // modify the color at row i col j
-      matrix[i][j] = colorIndex;
-      return c;
     }
+    if (num === 0) return 0;
+    let c = Infinity;
+    let colorIndex;
+    for (let k = 0; k < colors.length; k += 1) {
+      let cc = 0;
+      for (let m = 0; m < colorAround.length; m += 1) {
+        if (colorAround[m] === colors[k]) cc += 1;
+      }
+      if (cc < c) {
+        c = cc;
+        colorIndex = colors[k];
+      }
+    }
+    // modify the color at row i col j
+    matrix[i][j] = colorIndex;
+    return c;
   }
   while (conflictNum > 0) {
     conflictNum = 0;
-    wTime++;
-    for (let i = 0; i < rows; i++) {
-      for (let j = 0; j < cols; j++) {
+    // wTime += 1;
+    for (let i = 0; i < rows; i += 1) {
+      for (let j = 0; j < cols; j += 1) {
         conflictNum += modifyColor(i, j);
       }
     }
   }
-  console.log('after');
-  matrix.forEach(v => console.log(v));
-  console.log('while excute times: ' + wTime);
+  // console.log('after');
+  // matrix.forEach(v => console.log(v));
+  // console.log('while execute times: ' + wTime);
   return matrix;
 }
 // createDifferentColorMatrix(5, 5, 4);
@@ -75,17 +82,7 @@ function createDifferentColorMatrix(rows, cols, colors) {
  * @param  {[type]} colors [description]
  * @return {[type]}        [description]
  */
-function createRandomColorMatrix(rows, cols, colors) {
-  let matrix = new Array(rows);
-  for (let i = 0; i < rows; i++) {
-    let rowCell = new Array(cols);
-    for (let j = 0; j < cols; j++) {
-      rowCell[j] = getRangeRandom(colors[0], colors.length + 1);
-    }
-    matrix[i] = rowCell;
-  }
-  return matrix;
-}
+
 
 function CreateCancelCell(rows, cols, colors) {
   // 创建一个二维矩阵，每个位置的数字表示颜色
@@ -94,6 +91,7 @@ function CreateCancelCell(rows, cols, colors) {
   let status = 0;
   let canBeCanceled = false;
   let cb = null;
+  const minCancelNum = 3;
   // 将二维矩阵的元素变成obj，包含key，row，col，color
   // 同时扩充行数，方便后续的填充
   for (let i = -rows; i < rows; i += 1) {
@@ -138,33 +136,33 @@ function CreateCancelCell(rows, cols, colors) {
   }
   function exchange(location, direction) {
     canBeCanceled = true;
-    var x = location[0];
-    var y = location[1];
-    var targetX = x;
-    var targetY = y;
+    const x = location[0];
+    const y = location[1];
+    let targetX = x;
+    let targetY = y;
     switch (direction) {
       case 0:
-        targetX--;
+        targetX -= 1;
         break;
       case 1:
-        targetY++;
+        targetY += 1;
         break;
       case 2:
-        targetX++;
+        targetX += 1;
         break;
       case 3:
-        targetY--;
+        targetY -= 1;
         break;
       default:
-        alert("error!");
+        // alert("error!");
     }
-    //maybe it is dragged out of bound
+    // maybe it is dragged out of bound
     if (targetX >= 0 && targetX < matrix.length && targetY >= 0 && targetY < matrix[0].length) {
-      this.status = 1;
+      status = 1;
       matrixElementSwap([x, y], [targetX, targetY], matrix);
-      this.cb({
-        cellHub: this.cellHub,
-      })
+      cb({
+        cellHub,
+      });
     }
   }
   function cancel() {
@@ -176,7 +174,7 @@ function CreateCancelCell(rows, cols, colors) {
           if (matrix[i][j] && matrix[i][j].color === c) {
             counter += 1;
           } else {
-            if (counter >= this.minCancelNum) {
+            if (counter >= minCancelNum) {
               for (let k = 0; k < counter; k += 1) {
                 // arr[i][j-(k+1)]=0;
                 waitForCancel.push([i, j - (k + 1)]);
@@ -193,7 +191,7 @@ function CreateCancelCell(rows, cols, colors) {
           if (matrix[j] && matrix[j][i] && matrix[j][i].color === c) {
             counter += 1;
           } else {
-            if (counter >= this.minCancelNum) {
+            if (counter >= minCancelNum) {
               for (let k = 0; k < counter; k += 1) {
                 // arr[i][j-(k+1)]=0;
                 waitForCancel.push([j - (k + 1), i]);
@@ -208,7 +206,7 @@ function CreateCancelCell(rows, cols, colors) {
     // 遍历记录的坐标，逐个清除
     if (waitForCancel.length === 0) {
       status = 0;
-      this.canBeCanceled = false;
+      canBeCanceled = false;
     } else {
       status = 2;
       for (let i = 0; i < waitForCancel.length; i += 1) {
@@ -229,7 +227,7 @@ function CreateCancelCell(rows, cols, colors) {
           tempArr.push(matrix[i][j]);
         }
       }
-      const fillNum = this.rows - tempArr.length;
+      const fillNum = rows - tempArr.length;
       for (let m = 0; m < fillNum; m += 1) {
         const key = uuid.v4();
         const color = getRangeRandom(1, 6);
@@ -238,7 +236,7 @@ function CreateCancelCell(rows, cols, colors) {
           key,
           color,
         };
-        this.cellHub[key] = {
+        cellHub[key] = {
           color,
           row: -(m + 1),
           col: j,
@@ -247,18 +245,16 @@ function CreateCancelCell(rows, cols, colors) {
     }
   }
   function adjust() {
-    this.status = 1;
+    status = 1;
     for (let j = 0; j < matrix[0].length; j += 1) {
-      let postion = matrix.length - 1;
+      let position = matrix.length - 1;
       for (let i = matrix.length - 1; i >= -matrix.length; i -= 1) {
-        if (matrix[i][j].color === 0) {
-          continue;
-        } else {
-          matrix[postion][j] = matrix[i][j];
-          const key = matrix[postion][j].key;
-          this.cellHub[key].row = postion;
-          postion -= 1;
-          if (postion === -1) break;
+        if (matrix[i][j].color !== 0) {
+          matrix[position][j] = matrix[i][j];
+          const { key } = matrix[position][j];
+          cellHub[key].row = position;
+          position -= 1;
+          if (position === -1) break;
         }
       }
     }
@@ -288,8 +284,14 @@ function CreateCancelCell(rows, cols, colors) {
   function subscribe(callback) {
     cb = callback;
   }
-  function getStatus() {
-    return status;
+  // function getStatus() {
+  //   return status;
+  // }
+  function getRows() {
+    return rows;
+  }
+  function getCols() {
+    return cols;
   }
   function getCanBeCanceled() {
     return canBeCanceled;
@@ -300,6 +302,9 @@ function CreateCancelCell(rows, cols, colors) {
     next,
     subscribe,
     cellHub,
+    getCols,
+    getRows,
+    getCanBeCanceled,
   };
 }
 
