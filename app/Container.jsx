@@ -10,15 +10,15 @@ export default class CancelContainer extends React.Component {
     this.state = { cellHub: cancelCell.cellHub };
   }
   componentDidMount() {
-    cancelCell.cb = this.setState.bind(this);
+    cancelCell.subscribe(this.setState.bind(this));
   }
   componentDidUpdate() {
-    if (cancelCell.canBeCanceled === false) return;
+    if (cancelCell.getCanBeCanceled() === false) return;
     setTimeout(() => cancelCell.next(), 300);
   }
   render() {
     const cancelUnitArr = [];
-    this.state.cellHub.keys().forEach((k) => {
+    Object.keys(this.state.cellHub).forEach((k) => {
       const cellObj = cancelCell.cellHub[k];
       const i = cellObj.row;
       const j = cellObj.col;
@@ -28,6 +28,8 @@ export default class CancelContainer extends React.Component {
         color={cellObj.color}
         rowIndex={i}
         colIndex={j}
+        rows={cancelCell.getRows()}
+        cols={cancelCell.getCols()}
       />);
     });
     return (
