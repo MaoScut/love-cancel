@@ -49,21 +49,21 @@ export default class CancelUnit extends React.Component {
       y: this.onMouseDownY,
     };
     const direction = judgeDirection(down, up);
-    this.props.exchange([this.props.rows, this.props.col], direction);
+    this.props.exchange([this.props.rowIndex, this.props.colIndex], direction);
   }
   render() {
     const containerWidth = 450;
     const containerHeight = 600;
 
-    const left = (this.props.colIndex * containerWidth) / cancelCell.cols;
-    const top = (this.props.rowIndex * containerHeight) / cancelCell.rows;
+    const left = (this.props.colIndex * containerWidth) / this.props.cols;
+    const top = (this.props.rowIndex * containerHeight) / this.props.rows;
     const colorNum = this.props.color;
     const styleObj = {
       left,
       top,
       backgroundColor: colorMap[colorNum],
-      width: containerWidth / cancelCell.cols,
-      height: containerHeight / cancelCell.rows,
+      width: containerWidth / this.props.cols,
+      height: containerHeight / this.props.rows,
       position: 'absolute',
     };
     return (
