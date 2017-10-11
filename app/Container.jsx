@@ -18,16 +18,28 @@ export default class CancelContainer extends React.Component {
   }
   render() {
     const cancelUnitArr = [];
+    const containerWidth = 450;
+    const containerHeight = 600;
+    const rows = cancelCell.getRows();
+    const cols = cancelCell.getCols();
     Object.keys(this.state.cellHub).forEach((k) => {
       const cellObj = cancelCell.cellHub[k];
       const i = cellObj.row;
       const j = cellObj.col;
+      const top = (containerHeight * i) / rows;
+      const left = (containerWidth * j) / cols;
+      const width = containerWidth / cols;
+      const height = containerHeight / rows;
       cancelUnitArr.push(<CancelUnit
         exchange={cancelCell.exchange}
         key={k}
         color={cellObj.color}
         rowIndex={i}
         colIndex={j}
+        top={top}
+        left={left}
+        width={width}
+        height={height}
         rows={cancelCell.getRows()}
         cols={cancelCell.getCols()}
       />);

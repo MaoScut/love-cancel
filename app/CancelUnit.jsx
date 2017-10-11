@@ -52,18 +52,13 @@ export default class CancelUnit extends React.Component {
     this.props.exchange([this.props.rowIndex, this.props.colIndex], direction);
   }
   render() {
-    const containerWidth = 450;
-    const containerHeight = 600;
-
-    const left = (this.props.colIndex * containerWidth) / this.props.cols;
-    const top = (this.props.rowIndex * containerHeight) / this.props.rows;
     const colorNum = this.props.color;
     const styleObj = {
-      left,
-      top,
+      left: this.props.left,
+      top: this.props.top,
       backgroundColor: colorMap[colorNum],
-      width: containerWidth / this.props.cols,
-      height: containerHeight / this.props.rows,
+      width: this.props.width,
+      height: this.props.height,
       position: 'absolute',
     };
     return (
