@@ -1,97 +1,111 @@
 import uuid from 'uuid';
 
+/**
+ * 返回区间内的随机整数，左闭右开
+ * @param {Number} low 区间左端点
+ * @param {Number} height 区间右端点
+ */
 function getRangeRandom(low, height) {
   return Math.floor((Math.random() * (height - low)) + low);
 }
 
-// function createNewElement() {
-//   let rand = getRangeRandom(1, 6);
-//   return {
-//     key: uuid.v4(),
-//     color: rand,
-//   }
-// }
-function createRandomColorMatrix(rows, cols, colors) {
+/**
+ * 生成一个随机矩阵，元素的范围是range[0]到range[1]，左闭右开
+ * @param {Number} rows 矩阵的行数
+ * @param {Number} cols 矩阵的列数
+ * @param {Array} range 区间
+ */
+function createRandomColorMatrix(rows, cols, range) {
   const matrix = new Array(rows);
   for (let i = 0; i < rows; i += 1) {
     const rowCell = new Array(cols);
     for (let j = 0; j < cols; j += 1) {
-      rowCell[j] = getRangeRandom(colors[0], colors.length + 1);
+      rowCell[j] = getRangeRandom(range[0], range[1]);
     }
     matrix[i] = rowCell;
   }
   return matrix;
 }
-function createDifferentColorMatrix(rows, cols, colors) {
-  const matrix = createRandomColorMatrix(rows, cols, colors);
-  // console.log('before');
-  // matrix.forEach(v => console.log(v));
+/**
+ * 生成一个不冲突的随机矩阵
+ * @param {Number} rows 行数
+ * @param {Number} cols 列数
+ * @param {Array} range 区间，左闭右开
+ */
+function createDifferentColorMatrix(rows, cols, range) {
+  const matrix = createRandomColorMatrix(rows, cols, range);
   let conflictNum = Infinity;
-  // let wTime = 0;
   function modifyColor(i, j) {
     let num = 0;
     const candidate = [[i - 1, j], [i, j + 1], [i + 1, j], [i, j - 1]];
     const colorAround = [];
     for (let k = 0; k < candidate.length; k += 1) {
       const [rowIndex, colIndex] = candidate[k];
+      // 周围的元素是边界之外的的时候跳过
       if (rowIndex === -1 || colIndex === -1 || rowIndex === rows || colIndex === cols) {
         num += 0;
       } else {
+        // 收集周围4个颜色
         colorAround.push(matrix[rowIndex][colIndex]);
+        // 如果自己和周围元素的颜色相同，冲突数量+1
         if (matrix[i][j] === matrix[rowIndex][colIndex]) {
           num += 1;
         }
       }
     }
+    // 与周围元素颜色不同的时候，该位置冲突数量为0
     if (num === 0) return 0;
+    // 该位置存在冲突，那么找出在周围四个位置中，出现次数最少的颜色
     let c = Infinity;
-    let colorIndex;
-    for (let k = 0; k < colors.length; k += 1) {
+    let colorSeq;
+    // k表示颜色标号，因为range是左闭右开，所以这里是小于而不是小于等于
+    for (let k = 1; k < range[1]; k += 1) {
       let cc = 0;
       for (let m = 0; m < colorAround.length; m += 1) {
-        if (colorAround[m] === colors[k]) cc += 1;
+        if (colorAround[m] === k) cc += 1;
       }
       if (cc < c) {
         c = cc;
-        colorIndex = colors[k];
+        colorSeq = k;
       }
     }
-    // modify the color at row i col j
-    matrix[i][j] = colorIndex;
+    // 把该位置设置为出现次数最少的那个颜色
+    matrix[i][j] = colorSeq;
+    // 返回该位置的冲突数量
     return c;
   }
+  // 存在冲突时，反复修改每个位置的颜色
   while (conflictNum > 0) {
     conflictNum = 0;
-    // wTime += 1;
     for (let i = 0; i < rows; i += 1) {
       for (let j = 0; j < cols; j += 1) {
         conflictNum += modifyColor(i, j);
       }
     }
   }
-  // console.log('after');
-  // matrix.forEach(v => console.log(v));
-  // console.log('while execute times: ' + wTime);
   return matrix;
 }
-// createDifferentColorMatrix(5, 5, 4);
 /**
- * [createRandomColorMatrix description]
- * @param  {[type]} rows   [description]
- * @param  {[type]} cols   [description]
- * @param  {[type]} colors [description]
- * @return {[type]}        [description]
+ * 创建数据中心
+ * @param {Number} rows 行数
+ * @param {Number} cols 列数
+ * @param {Number} colorsNum 颜色数量
  */
-
-
-function CreateCancelCell(rows, cols, colors) {
+function CreateCancelCell(rows, cols, colorsNum) {
   // 创建一个二维矩阵，每个位置的数字表示颜色
-  const matrix = createDifferentColorMatrix(rows, cols, colors);
+  const matrix = createDifferentColorMatrix(rows, cols, [1, colorsNum + 1]);
+  // 应用的状态，与矩阵是对应的，每个元素包含key，row，col，color属性
   const cellHub = {};
+  // 状态，每个阶段要做不同的事情
+  // 0是初始化，1是交换元素，2是消除，3是填充，4是调整
   let status = 0;
+  // 表示目前矩阵是否可以消除，根据它来判断是否调用next方法进行更新
   let canBeCanceled = false;
+  // 注册回调，setState
   let cb = null;
+  // 连续几个及以上能被消除
   const minCancelNum = 3;
+
   // 将二维矩阵的元素变成obj，包含key，row，col，color
   // 同时扩充行数，方便后续的填充
   for (let i = -rows; i < rows; i += 1) {
@@ -112,6 +126,11 @@ function CreateCancelCell(rows, cols, colors) {
       }
     }
   }
+  /**
+   * 交换两个坐标的元素，同时修改cellHub
+   * @param {Array} location1 [x, y]
+   * @param {Array} location2 [x, y]
+   */
   function matrixElementSwap(location1, location2) {
     const i1 = location1[0];
     const j1 = location1[1];
@@ -129,11 +148,21 @@ function CreateCancelCell(rows, cols, colors) {
     cellHub[k2].row = i1;
     cellHub[k2].col = j1;
   }
+  /**
+   * 把坐标对应的元素颜色设置为0
+   * @param {Number} i 行坐标
+   * @param {Number} j 列坐标
+   */
   function matrixElementCancel(i, j) {
     const obj = matrix[i][j];
     obj.color = 0;
     cellHub[obj.key].color = 0;
   }
+  /**
+   * 对应坐标上的元素和某个方向上的元素交换
+   * @param {Array} location 坐标，[x, y]
+   * @param {Number} direction 方向，上下左右，0123
+   */
   function exchange(location, direction) {
     canBeCanceled = true;
     const x = location[0];
@@ -165,13 +194,16 @@ function CreateCancelCell(rows, cols, colors) {
       });
     }
   }
+  /**
+   * 遍历矩阵，进行一次消除
+   */
   function cancel() {
     const waitForCancel = [];
-    colors.forEach((c) => {
+    for (let color = 1; color < colorsNum + 1; color += 1) {
       for (let i = 0; i < matrix.length; i += 1) {
         let counter = 0;
         for (let j = 0; j <= matrix[0].length; j += 1) {
-          if (matrix[i][j] && matrix[i][j].color === c) {
+          if (matrix[i][j] && matrix[i][j].color === color) {
             counter += 1;
           } else {
             if (counter >= minCancelNum) {
@@ -188,7 +220,7 @@ function CreateCancelCell(rows, cols, colors) {
         let counter = 0;
         for (let j = 0; j <= matrix.length; j += 1) {
           // why judge matrix[j]?
-          if (matrix[j] && matrix[j][i] && matrix[j][i].color === c) {
+          if (matrix[j] && matrix[j][i] && matrix[j][i].color === color) {
             counter += 1;
           } else {
             if (counter >= minCancelNum) {
@@ -201,7 +233,7 @@ function CreateCancelCell(rows, cols, colors) {
           }
         }
       }
-    });
+    }
 
     // 遍历记录的坐标，逐个清除
     if (waitForCancel.length === 0) {
@@ -217,6 +249,9 @@ function CreateCancelCell(rows, cols, colors) {
       }
     }
   }
+  /**
+   * 计算每一列需要补充的元素数量，在每一列上方补充
+   */
   function fill() {
     status = 3;
     for (let j = 0; j < matrix[0].length; j += 1) {
@@ -230,7 +265,7 @@ function CreateCancelCell(rows, cols, colors) {
       const fillNum = rows - tempArr.length;
       for (let m = 0; m < fillNum; m += 1) {
         const key = uuid.v4();
-        const color = getRangeRandom(1, 6);
+        const color = getRangeRandom(1, colorsNum + 1);
         // matrix[-(m + 1)] = [];
         matrix[-(m + 1)][j] = {
           key,
@@ -244,6 +279,9 @@ function CreateCancelCell(rows, cols, colors) {
       }
     }
   }
+  /**
+   * 元素向下聚拢
+   */
   function adjust() {
     status = 1;
     for (let j = 0; j < matrix[0].length; j += 1) {
@@ -259,6 +297,9 @@ function CreateCancelCell(rows, cols, colors) {
       }
     }
   }
+  /**
+   * 根据status，判断接下来该做什么
+   */
   function next() {
     if (status === 1) {
       cancel();
@@ -281,12 +322,13 @@ function CreateCancelCell(rows, cols, colors) {
       });
     }
   }
+  /**
+   * 注册矩阵改变后要触发的回调
+   * @param {function} callback 矩阵改变后要触发的回调
+   */
   function subscribe(callback) {
     cb = callback;
   }
-  // function getStatus() {
-  //   return status;
-  // }
   function getRows() {
     return rows;
   }
@@ -298,7 +340,6 @@ function CreateCancelCell(rows, cols, colors) {
   }
   return {
     exchange,
-    cancel,
     next,
     subscribe,
     cellHub,
@@ -308,4 +349,4 @@ function CreateCancelCell(rows, cols, colors) {
   };
 }
 
-export default CreateCancelCell(5, 5, [1, 2, 3, 4, 5]);
+export default CreateCancelCell(10, 10, 5);
