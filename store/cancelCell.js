@@ -8,7 +8,18 @@ import uuid from 'uuid';
 function getRangeRandom(low, height) {
   return Math.floor((Math.random() * (height - low)) + low);
 }
-
+/**
+ * 根据指定条件，返回一个不重复的数组，元素是浅复制
+ * @param {Array} arr 长度必须大于等于1
+ * @param {function} compare 接收两个元素，若认为相等，则返回true，否则返回false
+ */
+function uniqueArr(arr, compare) {
+  const res = [arr[0]];
+  for (let i = 1; i < arr.length; i += 1) {
+    if (!res.some(v => compare(v, arr[i]))) res.push(arr[i]);
+  }
+  return res;
+}
 /**
  * 生成一个随机矩阵，元素的范围是range[0]到range[1]，左闭右开
  * @param {Number} rows 矩阵的行数
@@ -106,6 +117,9 @@ function CreateCancelCell(rows, cols, colorsNum) {
   // 连续几个及以上能被消除
   const minCancelNum = 3;
 
+  let optionTimes = 0;
+  let clearNum = 0;
+
   // 将二维矩阵的元素变成obj，包含key，row，col，color
   // 同时扩充行数，方便后续的填充
   for (let i = -rows; i < rows; i += 1) {
@@ -188,9 +202,11 @@ function CreateCancelCell(rows, cols, colorsNum) {
     // maybe it is dragged out of bound
     if (targetX >= 0 && targetX < matrix.length && targetY >= 0 && targetY < matrix[0].length) {
       status = 1;
+      optionTimes += 1;
       matrixElementSwap([x, y], [targetX, targetY], matrix);
       cb({
         cellHub,
+        optionTimes,
       });
     }
   }
@@ -240,6 +256,8 @@ function CreateCancelCell(rows, cols, colorsNum) {
       status = 0;
       canBeCanceled = false;
     } else {
+      clearNum += uniqueArr(waitForCancel, (v1, v2) => v1[0] === v2[0] && v1[1] === v2[1]).length;
+      console.log(clearNum);
       status = 2;
       for (let i = 0; i < waitForCancel.length; i += 1) {
         const row = waitForCancel[i][0];
@@ -305,6 +323,8 @@ function CreateCancelCell(rows, cols, colorsNum) {
       cancel();
       cb({
         cellHub,
+        optionTimes,
+        clearNum,
       });
       return;
     }
