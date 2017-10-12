@@ -134,11 +134,25 @@ function CreateCancelCell(rows, cols, colorsNum) {
         };
         cellHub[key] = {
           color,
-          row: i,
-          col: j,
+          row: getRangeRandom(0, 51),
+          col: getRangeRandom(0, 51),
+          // row: -1,
+          // col: -1,
         };
       }
     }
+  }
+  function disperse() {
+    for (let i = 0; i < rows; i += 1) {
+      for (let j = 0; j < cols; j += 1) {
+        const key = matrix[i][j].key;
+        cellHub[key].row = i;
+        cellHub[key].col = j;
+      }
+    }
+    cb({
+      cellHub,
+    });
   }
   /**
    * 交换两个坐标的元素，同时修改cellHub
@@ -366,6 +380,7 @@ function CreateCancelCell(rows, cols, colorsNum) {
     getCols,
     getRows,
     getCanBeCanceled,
+    disperse,
   };
 }
 

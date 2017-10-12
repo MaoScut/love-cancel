@@ -16,6 +16,8 @@ export default class CancelContainer extends React.Component {
   }
   componentDidMount() {
     cancelCell.subscribe(this.setState.bind(this));
+    setTimeout(() => cancelCell.disperse(), 0);
+    // cancelCell.disperse();
   }
   componentDidUpdate() {
     if (cancelCell.getCanBeCanceled() === false) return;
