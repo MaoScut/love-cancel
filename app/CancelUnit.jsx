@@ -32,6 +32,9 @@ export default class CancelUnit extends React.Component {
     this.onMouseUpY = 0;
     this.markMouseUp = this.markMouseUp.bind(this);
     this.markMouseDown = this.markMouseDown.bind(this);
+    this.markTouchStart = this.markTouchStart.bind(this);
+    this.markTouchEnd = this.markTouchEnd.bind(this);
+
   }
   markMouseDown(e) {
     this.onMouseDownX = e.screenX;
@@ -40,6 +43,26 @@ export default class CancelUnit extends React.Component {
   markMouseUp(e) {
     this.onMouseUpX = e.screenX;
     this.onMouseUpY = e.screenY;
+    const up = {
+      x: this.onMouseUpX,
+      y: this.onMouseUpY,
+    };
+    const down = {
+      x: this.onMouseDownX,
+      y: this.onMouseDownY,
+    };
+    const direction = judgeDirection(down, up);
+    this.props.exchange([this.props.rowIndex, this.props.colIndex], direction);
+  }
+  markTouchStart(e) {
+    console.log('start');
+    console.log(this.onMouseDownX = e.touches[0].screenX);
+    console.log(this.onMouseDownY = e.touches[0].screenY);
+  }
+  markTouchEnd(e) {
+    console.log('end');
+    console.log(this.onMouseUpX = e.changedTouches[0].screenX);
+    console.log(this.onMouseUpY = e.changedTouches[0].screenY);
     const up = {
       x: this.onMouseUpX,
       y: this.onMouseUpY,
@@ -66,7 +89,9 @@ export default class CancelUnit extends React.Component {
         role="presentation"
         className="cancel-unit"
         onMouseDown={this.markMouseDown}
+        onTouchStart={this.markTouchStart}
         onDragEnd={this.markMouseUp}
+        onTouchEnd={this.markTouchEnd}
         draggable="true"
         style={styleObj}
       />
