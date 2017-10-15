@@ -142,7 +142,7 @@ function CreateCancelCell(rows, cols, colorsNum) {
       }
     }
   }
-  function disperse() {
+  function gather() {
     for (let i = 0; i < rows; i += 1) {
       for (let j = 0; j < cols; j += 1) {
         const key = matrix[i][j].key;
@@ -380,7 +380,7 @@ function CreateCancelCell(rows, cols, colorsNum) {
     getCols,
     getRows,
     getCanBeCanceled,
-    disperse,
+    gather,
   };
 }
 
