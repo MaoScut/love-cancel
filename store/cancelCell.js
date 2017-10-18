@@ -226,6 +226,10 @@ function CreateCancelCell(rows, cols, colorsNum) {
   }
   /**
    * 遍历矩阵，进行一次消除
+   * 经过思考，这个方法还真要遍历整个矩阵
+   * 如果从矩阵交换的位置去检查，那么势必要传入某个坐标
+   * 那么这个方法只能去消除由于交换而造成的连续方块，而在方块向下聚拢的时候，仍然需要去检查并且清除
+   * 这时候是没有从哪个位置开始检查的
    */
   function cancel() {
     const waitForCancel = [];
