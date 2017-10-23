@@ -41,6 +41,7 @@ export default class CancelContainer extends React.Component {
         exchange={cancelCell.exchange}
         key={k}
         color={cellObj.color}
+        marked={cellObj.marked}
         rowIndex={i}
         colIndex={j}
         top={top}
