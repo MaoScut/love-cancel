@@ -1,11 +1,11 @@
 import React from 'react';
 
 const colorMap = {
-  1: 'green',
-  2: 'yellow',
-  3: 'red',
-  4: 'blue',
-  5: 'orange',
+  1: '#99CC33',
+  2: '#CC6699',
+  3: '#FF9933',
+  4: '#FFFF00',
+  5: '#3366CC',
 };
 function judgeDirection(down, up) {
   const arr = [];
@@ -34,7 +34,6 @@ export default class CancelUnit extends React.Component {
     this.markMouseDown = this.markMouseDown.bind(this);
     this.markTouchStart = this.markTouchStart.bind(this);
     this.markTouchEnd = this.markTouchEnd.bind(this);
-
   }
   markMouseDown(e) {
     this.onMouseDownX = e.screenX;
@@ -83,7 +82,11 @@ export default class CancelUnit extends React.Component {
       width: this.props.width,
       height: this.props.height,
       position: 'absolute',
+      boxSizing: 'border-box',
     };
+    if (this.props.marked && colorNum !== 0) {
+      styleObj.border = '3px solid red';
+    }
     return (
       <section
         role="presentation"
