@@ -176,6 +176,12 @@ function CreateCancelCell(rows, cols, colorsNum) {
     cellHub[k2].row = i1;
     cellHub[k2].col = j1;
   }
+  function markMatrixElement(i, j) {
+    const element = matrix[i][j];
+    element.marked = true;
+    const key = element.key;
+    cellHub[key].marked = true;
+  }
   /**
    * 把坐标对应的元素颜色设置为0
    * @param {Number} i 行坐标
@@ -231,8 +237,8 @@ function CreateCancelCell(rows, cols, colorsNum) {
    * 那么这个方法只能去消除由于交换而造成的连续方块，而在方块向下聚拢的时候，仍然需要去检查并且清除
    * 这时候是没有从哪个位置开始检查的
    */
-  function cancel() {
-    const waitForCancel = [];
+  function mark() {
+    status = 1.5;
     for (let color = 1; color < colorsNum + 1; color += 1) {
       for (let i = 0; i < matrix.length; i += 1) {
         let counter = 0;
@@ -243,7 +249,9 @@ function CreateCancelCell(rows, cols, colorsNum) {
             if (counter >= minCancelNum) {
               for (let k = 0; k < counter; k += 1) {
                 // arr[i][j-(k+1)]=0;
-                waitForCancel.push([i, j - (k + 1)]);
+                markMatrixElement(i, j - (k + 1));
+                // matrix[i][j - (k + 1)].activated = true;
+                // waitForCancel.push([i, j - (k + 1)]);
               }
             }
             counter = 0;
@@ -260,7 +268,8 @@ function CreateCancelCell(rows, cols, colorsNum) {
             if (counter >= minCancelNum) {
               for (let k = 0; k < counter; k += 1) {
                 // arr[i][j-(k+1)]=0;
-                waitForCancel.push([j - (k + 1), i]);
+                markMatrixElement(j - (k + 1), i);
+                // waitForCancel.push([j - (k + 1), i]);
               }
             }
             counter = 0;
@@ -268,21 +277,23 @@ function CreateCancelCell(rows, cols, colorsNum) {
         }
       }
     }
-
-    // 遍历记录的坐标，逐个清除
-    if (waitForCancel.length === 0) {
+  }
+  function cancel() {
+    let counter = 0;
+    for (let i = 0; i < matrix.length; i += 1) {
+      for (let j = 0; j < matrix[0].length; j += 1) {
+        if (matrix[i][j].marked) {
+          counter += 1;
+          clearNum += 1;
+          matrixElementCancel(i, j);
+        }
+      }
+    }
+    if (counter === 0) {
       status = 0;
       canBeCanceled = false;
     } else {
-      clearNum += uniqueArr(waitForCancel, (v1, v2) => v1[0] === v2[0] && v1[1] === v2[1]).length;
-      console.log(clearNum);
       status = 2;
-      for (let i = 0; i < waitForCancel.length; i += 1) {
-        const row = waitForCancel[i][0];
-        const col = waitForCancel[i][1];
-        // matrix[rowNum][colNum].color = 0;
-        matrixElementCancel(row, col, matrix);
-      }
     }
   }
   /**
@@ -338,6 +349,13 @@ function CreateCancelCell(rows, cols, colorsNum) {
    */
   function next() {
     if (status === 1) {
+      mark();
+      cb({
+        cellHub,
+      });
+      return;
+    }
+    if (status === 1.5) {
       cancel();
       cb({
         cellHub,
