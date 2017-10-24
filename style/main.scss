@@ -32,9 +32,15 @@ html,body{
 
 .score{
   position: absolute;
-  left: 500px;
+  top: 550px;
+  left: 50px;
 }
 .option {
   position: absolute;
   right: 0;
+}
+.container {
+  width: 512px;
+  height: 750px;
+  background-image: url('../background.jpg');
 }

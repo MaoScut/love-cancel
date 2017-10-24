@@ -76,8 +76,8 @@ export default class CancelUnit extends React.Component {
   render() {
     const colorNum = this.props.color;
     const styleObj = {
-      left: this.props.left,
-      top: this.props.top,
+      left: this.props.left + 57,
+      top: this.props.top + 135,
       backgroundColor: colorMap[colorNum],
       width: this.props.width,
       height: this.props.height,

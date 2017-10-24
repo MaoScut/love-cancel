@@ -25,10 +25,10 @@ export default class CancelContainer extends React.Component {
     setTimeout(() => cancelCell.next(), 300);
   }
   render() {
-    const width = 60 * 0.618;
-    const height = 60;
+    const width = 40;
+    const height = 40;
     return (
-      <div>
+      <div className="container">
         <Cancel
           cellHub={this.state.cellHub}
           rectWidth={width}
