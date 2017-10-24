@@ -2,6 +2,7 @@ import React from 'react';
 import cancelCell from '../store/cancelCell';
 import CancelUnit from './CancelUnit';
 import Score from './Score';
+import Option from './Option';
 
 require('../style/main.scss');
 
@@ -58,6 +59,7 @@ export default class CancelContainer extends React.Component {
           {cancelUnitArr}
         </div>
         <Score optionTimes={this.state.optionTimes} clearNum={this.state.clearNum} />
+        <Option />
       </div>
     );
   }
