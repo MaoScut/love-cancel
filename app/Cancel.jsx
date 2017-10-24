@@ -64,10 +64,8 @@ export default function Cancel({ cellHub, rectWidth, rectHeight, exchange }) {
     />);
   });
   return (
-    <div>
-      <div className="container">
-        {cancelUnitArr}
-      </div>
+    <div className="game">
+      {cancelUnitArr}
     </div>
   );
 }
