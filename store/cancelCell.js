@@ -198,6 +198,7 @@ function CreateCancelCell(rows, cols, colorsNum) {
    * @param {Number} direction 方向，上下左右，0123
    */
   function exchange(location, direction) {
+    if (status !== 0) return;
     canBeCanceled = true;
     const x = location[0];
     const y = location[1];
