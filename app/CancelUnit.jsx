@@ -54,14 +54,12 @@ export default class CancelUnit extends React.Component {
     this.props.exchange([this.props.rowIndex, this.props.colIndex], direction);
   }
   markTouchStart(e) {
-    console.log('start');
-    console.log(this.onMouseDownX = e.touches[0].screenX);
-    console.log(this.onMouseDownY = e.touches[0].screenY);
+    this.onMouseDownX = e.touches[0].screenX;
+    this.onMouseDownY = e.touches[0].screenY;
   }
   markTouchEnd(e) {
-    console.log('end');
-    console.log(this.onMouseUpX = e.changedTouches[0].screenX);
-    console.log(this.onMouseUpY = e.changedTouches[0].screenY);
+    this.onMouseUpX = e.changedTouches[0].screenX;
+    this.onMouseUpY = e.changedTouches[0].screenY;
     const up = {
       x: this.onMouseUpX,
       y: this.onMouseUpY,
